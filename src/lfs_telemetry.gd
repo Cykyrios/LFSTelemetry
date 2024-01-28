@@ -31,6 +31,7 @@ func connect_signals() -> void:
 	_discard = insim.isp_spx_received.connect(_on_split_received)
 	_discard = insim.isp_rst_received.connect(_on_race_start_received)
 	_discard = insim.isp_sta_received.connect(_on_state_received)
+	_discard = insim.small_vta_received.connect(_on_small_vta_received)
 
 	_discard = outgauge.packet_received.connect(_on_outgauge_packet_received)
 	_discard = outsim.packet_received.connect(_on_outsim_packet_received)
@@ -88,6 +89,13 @@ func _on_race_start_received(_packet: InSimRSTPacket) -> void:
 	if telemetry.recording:
 		telemetry.end_current_lap()
 	insim.send_state_request()
+
+
+func _on_small_vta_received(packet: InSimSmallPacket) -> void:
+	if not (telemetry.recording):
+		return
+	if packet.value in [InSim.Vote.VOTE_END, InSim.Vote.VOTE_RESTART, InSim.Vote.VOTE_QUALIFY]:
+		telemetry.end_current_lap()
 
 
 func _on_split_received(packet: InSimSPXPacket) -> void:
