@@ -13,6 +13,8 @@ var outgauge_data: Array[OutGaugePacket] = []
 
 
 func fill_car_data() -> void:
+	if outsim_data.is_empty():
+		return
 	# OutGauge is more reliable as OutSim only records in cockpit or custom views
 	var data_point_count := outgauge_data.size()
 	var _discard := car_data.resize(data_point_count)
