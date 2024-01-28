@@ -11,6 +11,7 @@ var recording := false
 
 
 func end_current_lap() -> void:
+	EventBus.telemetry_ended.emit()
 	recording = false
 	current_lap = null
 	process_lap_data(recorded_laps[-1])
@@ -69,6 +70,7 @@ func save_lap(packet: InSimLAPPacket) -> void:
 
 
 func start_new_lap() -> void:
+	EventBus.telemetry_started.emit()
 	recording = true
 	current_lap = LapData.new()
 	recorded_laps.append(current_lap)
