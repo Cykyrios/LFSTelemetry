@@ -22,89 +22,88 @@ def setup_plot():
     ax.patch.set_alpha(0)
 
 
-figure_size = [12, 2]
+def new_figure(figname, figsize):
+    fig = plt.figure(figname, figsize)
+    return fig
 
-x_limits = [0, None]
-y_limits = [None, None]
 
-fig = plt.figure("Pos", figsize=[12, 6])
-ax = plt.gca()
-ax.plot(data["Time"], data["PosX"], color="red", label="PosX")
-ax.plot(data["Time"], data["PosY"], color="green", label="PosY")
-ax.plot(data["Time"], data["PosZ"], color="blue", label="PosZ")
-ax.set_xlim(x_limits)
+def plot_against_time(x_series, y_series, colors, labels):
+    ax = plt.gca()
+    for i in range(len(y_series)):
+        ax.plot(x_series, y_series[i], color=colors[i], label=labels[i])
+    ax.set_xlim([0, None])
+    setup_plot()
+    return ax
+
+
+def plot_xy(x_series, y_series, colors, labels):
+    ax = plt.gca()
+    for i in range(len(y_series)):
+        ax.plot(x_series, y_series[i], color=colors[i], label=labels[i])
+    setup_plot()
+    return ax
+
+
+fig = new_figure(figname="Pos", figsize=[12, 6])
+ax = plot_against_time(x_series=data["Time"],
+                       y_series=[data["PosX"], data["PosY"], data["PosZ"]],
+                       colors=["red", "green", "blue"], labels=["PosX", "PosY", "PosZ"])
 ax.set_ylabel("Position (m)")
 ax.set_title("Position")
-setup_plot()
 
-fig = plt.figure("Vel", figsize=[12, 6])
-ax = plt.gca()
-ax.plot(data["Time"], data["VelX"], color="red", label="VelX")
-ax.plot(data["Time"], data["VelY"], color="green", label="VelY")
-ax.plot(data["Time"], data["VelZ"], color="blue", label="VelZ")
-ax.set_xlim(x_limits)
+fig = new_figure(figname="Vel", figsize=[12, 6])
+ax = plot_against_time(x_series=data["Time"],
+                       y_series=[data["VelX"], data["VelY"], data["VelZ"]],
+                       colors=["red", "green", "blue"], labels=["VelX", "VelY", "VelZ"])
 ax.set_ylabel("Velocity (m/s)")
 ax.set_title("Velocity")
-setup_plot()
 
-fig = plt.figure("Acc", figsize=[12, 6])
-ax = plt.gca()
-ax.plot(data["Time"], data["AccX"], color="red", label="AccX")
-ax.plot(data["Time"], data["AccY"], color="green", label="AccY")
-ax.plot(data["Time"], data["AccZ"], color="blue", label="AccZ")
-ax.set_xlim(x_limits)
+fig = new_figure(figname="Acc", figsize=[12, 6])
+ax = plot_against_time(x_series=data["Time"],
+                       y_series=[data["AccX"], data["AccY"], data["AccZ"]],
+                       colors=["red", "green", "blue"], labels=["AccX", "AccY", "AccZ"])
 ax.set_ylabel("Acceleration (m/s²)")
 ax.set_title("Acceleration")
-setup_plot()
 
-fig = plt.figure("Rot", figsize=[12, 6])
-ax = plt.gca()
-ax.plot(data["Time"], data["RotX"] * 180 / np.pi, color="red", label="RotX")
-ax.plot(data["Time"], data["RotY"] * 180 / np.pi, color="green", label="RotY")
-ax.plot(data["Time"], data["RotZ"] * 180 / np.pi, color="blue", label="RotZ")
-ax.set_xlim(x_limits)
+fig = new_figure(figname="Rot", figsize=[12, 6])
+ax = plot_against_time(x_series=data["Time"],
+                       y_series=[data["RotX"], data["RotY"], data["RotZ"]],
+                       colors=["red", "green", "blue"], labels=["RotX", "RotY", "RotZ"])
 ax.set_ylabel("Rotation (°)")
 ax.set_title("Rotation")
 setup_plot()
 
-fig = plt.figure("AngVel", figsize=[12, 6])
-ax = plt.gca()
-ax.plot(data["Time"], data["AngVelX"], color="red", label="AngVelX")
-ax.plot(data["Time"], data["AngVelY"], color="green", label="AngVelY")
-ax.plot(data["Time"], data["AngVelZ"], color="blue", label="AngVelZ")
-ax.set_xlim(x_limits)
+fig = new_figure(figname="AngVel", figsize=[12, 6])
+ax = plot_against_time(x_series=data["Time"],
+                       y_series=[data["AngVelX"], data["AngVelY"], data["AngVelZ"]],
+                       colors=["red", "green", "blue"],
+                       labels=["AngVelX", "AngVelY", "AngVelZ"])
 ax.set_ylabel("Angular Velocity (°/s)")
 ax.set_title("Angular Velocity")
 setup_plot()
 
-fig = plt.figure("TrackXY", figsize=[12, 6])
-ax = plt.gca()
-ax.plot(data["PosX"], data["PosY"], color="red", label="TrackXY")
-setup_plot()
+fig = new_figure(figname="TrackXY", figsize=[12, 6])
+ax = plot_xy(x_series=data["PosX"], y_series=[data["PosY"]], colors=["red"], labels=["TrackXY"])
 ax.set_aspect('equal', 'box')
 ax.set_xlabel("PosX")
 ax.set_ylabel("PosY")
 ax.set_title("Path (XY)")
 
-fig = plt.figure("TrackXZ", figsize=[12, 6])
-ax = plt.gca()
-ax.plot(data["PosX"], data["PosZ"], color="red", label="TrackXZ")
-setup_plot()
+fig = new_figure(figname="TrackXZ", figsize=[12, 6])
+ax = plot_xy(x_series=data["PosX"], y_series=[data["PosZ"]], colors=["red"], labels=["TrackXZ"])
 ax.set_aspect('equal', 'box')
 ax.set_xlabel("PosX")
 ax.set_ylabel("PosZ")
 ax.set_title("Path (XZ)")
 
-fig = plt.figure("TrackYZ", figsize=[12, 6])
-ax = plt.gca()
-ax.plot(data["PosY"], data["PosZ"], color="red", label="TrackYZ")
-setup_plot()
+fig = new_figure(figname="TrackYZ", figsize=[12, 6])
+ax = plot_xy(x_series=data["PosY"], y_series=[data["PosZ"]], colors=["red"], labels=["TrackYZ"])
 ax.set_aspect('equal', 'box')
 ax.set_xlabel("PosY")
 ax.set_ylabel("PosZ")
 ax.set_title("Path (YZ)")
 
-fig = plt.figure("3D Path", figsize=[12, 6])
+fig = new_figure(figname="3D Path", figsize=[12, 6])
 ax = fig.add_subplot(projection="3d")
 ax.scatter(data["PosX"], data["PosY"], data["PosZ"], c=data["Time"], cmap="plasma",
            label="3D Path", marker=".")
@@ -124,7 +123,7 @@ ax.set_xlim(x0 - max_range, x0 + max_range)
 ax.set_ylim(y0 - max_range, y0 + max_range)
 ax.set_zlim(z0 - max_range, z0 + max_range)
 
-fig = plt.figure("Track Path and Speed", figsize=[12, 6])
+fig = new_figure(figname="Track Path and Speed", figsize=[12, 6])
 ax = plt.gca()
 data["Speed"] = np.sqrt(data["VelX"]**2 + data["VelY"]**2 + data["VelZ"]**2)
 scatter = ax.scatter(data["PosX"], data["PosY"], c=data["Speed"] * 3.6, cmap="jet", label="Speed")
@@ -135,39 +134,30 @@ ax.set_ylabel("PosY")
 ax.set_title("Speed")
 ax.legend(*scatter.legend_elements(), title="Speed")
 
-fig = plt.figure("Input", figsize=[12, 6])
+fig = new_figure(figname="Input", figsize=[12, 6])
 ax1 = plt.subplot(411)
 ax1.set_title("Input")
-ax1.plot(data["Time"], data["Throttle"], color="green", label="Throttle")
-ax1.plot(data["Time"], data["Brake"], color="red", label="Brake")
-ax1.set_xlim(x_limits)
+ax1 = plot_against_time(data["Time"], [data["Throttle"], data["Brake"]], ["green", "red"],
+                        ["Throttle", "Brake"])
 ax1.set_ylabel("Throttle/Brake")
-setup_plot()
 ax1.tick_params(labelbottom=False)
 ax1.set_xlabel("")
 ax2 = plt.subplot(412, sharex=ax1)
-ax2.plot(data["Time"], data["TC"], color="green", label="TC")
-ax2.plot(data["Time"], data["ABS"], color="red", label="ABS")
-ax2.set_xlim(x_limits)
+ax2 = plot_against_time(data["Time"], [data["TC"], data["ABS"]], ["green", "red"], ["TC", "ABS"])
 ax2.set_ylabel("TC/ABS")
-setup_plot()
 ax2.tick_params(labelbottom=False)
 ax2.set_xlabel("")
 ax3 = plt.subplot(413, sharex=ax1)
-ax3.plot(data["Time"], data["Clutch"], color="blue", label="Clutch")
-ax3.plot(data["Time"], data["HBrake"], color="brown", label="HandBrake")
-ax3.set_xlim(x_limits)
+ax3 = plot_against_time(data["Time"], [data["Clutch"], data["HBrake"]], ["blue", "brown"],
+                        ["Clutch", "HandBrake"])
 ax3.set_ylabel("Clutch/HBrake")
-setup_plot()
 ax3.tick_params(labelbottom=False)
 ax3.set_xlabel("")
 ax4 = plt.subplot(414, sharex=ax1)
-ax4.plot(data["Time"], data["Steer"], label="Steer")
-ax4.set_xlim(x_limits)
+ax4 = plot_against_time(data["Time"], [data["Steer"]], ["blue"], ["Steer"])
 ax4.set_ylabel("Steering")
-setup_plot()
 
-fig = plt.figure("RPM", figsize=[12, 6])
+fig = new_figure(figname="RPM", figsize=[12, 6])
 ax = plt.gca()
 scatter = ax.scatter(data["Time"], data["RPM"], c=data["Gear"], cmap="jet", label="RPM")
 setup_plot()
@@ -175,7 +165,7 @@ ax.set_ylabel("RPM")
 ax.set_title("RPM")
 ax.legend(*scatter.legend_elements(), title="Gear")
 
-fig = plt.figure("Power/Torque", figsize=[12, 6])
+fig = new_figure(figname="Power/Torque", figsize=[12, 6])
 ax = plt.gca()
 scatter = ax.plot(data["Time"], data["RPM"], c="red", label="RPM")
 setup_plot()
@@ -192,134 +182,128 @@ ax3.plot(data["Time"], data["Torque"], c="blue", linestyle="--", label="Max Torq
 ax3.set_ylabel("Torque (N.m)", c="blue")
 ax3.spines.right.set_position(("axes", 1.08))
 
-fig = plt.figure("Suspension", figsize=[12, 6])
-ax = plt.gca()
-ax.plot(data["Time"], data["WRLSusp"], color="red", label="WRLSusp")
-ax.plot(data["Time"], data["WRRSusp"], color="green", label="WRRSusp")
-ax.plot(data["Time"], data["WFLSusp"], color="blue", label="WFLSusp")
-ax.plot(data["Time"], data["WFRSusp"], color="yellow", label="WFRSusp")
-ax.set_xlim(x_limits)
-ax.set_ylabel("Suspension Deflection")
+fig = new_figure(figname="Suspension", figsize=[12, 6])
+ax = plot_against_time(
+    x_series=data["Time"],
+    y_series=[data["WRLSusp"] * 1000, data["WRRSusp"] * 1000, data["WFLSusp"] * 1000,
+              data["WFRSusp"] * 1000],
+    colors=["red", "green", "blue", "yellow"],
+    labels=["WRLSusp", "WRRSusp", "WFLSusp", "WFRSusp"])
+ax.set_ylabel("Suspension Deflection (mm)")
 ax.set_title("Suspension")
-setup_plot()
 
-fig = plt.figure("Wheel Steer", figsize=[12, 6])
-ax = plt.gca()
-ax.plot(data["Time"], data["WRLSteer"] * 180 / np.pi, color="red", label="WRLSteer")
-ax.plot(data["Time"], data["WRRSteer"] * 180 / np.pi, color="green", label="WRRSteer")
-ax.plot(data["Time"], data["WFLSteer"] * 180 / np.pi, color="blue", label="WFLSteer")
-ax.plot(data["Time"], data["WFRSteer"] * 180 / np.pi, color="yellow", label="WFRSteer")
-ax.set_xlim(x_limits)
+fig = new_figure(figname="Wheel Steer", figsize=[12, 6])
+ax = plot_against_time(
+    x_series=data["Time"],
+    y_series=[data["WRLSteer"] * 180 / np.pi, data["WRRSteer"] * 180 / np.pi,
+              data["WFLSteer"] * 180 / np.pi, data["WFRSteer"] * 180 / np.pi],
+    colors=["red", "green", "blue", "yellow"],
+    labels=["WRLSteer", "WRRSteer", "WFLSteer", "WFRSteer"])
 ax.set_ylabel("Wheel Steer (deg)")
 ax.set_title("Wheel Steer")
 setup_plot()
 
-fig = plt.figure("Wheel LatForce", figsize=[12, 6])
-ax = plt.gca()
-ax.plot(data["Time"], data["WRLLat"] / 1000, color="red", label="WRLLat")
-ax.plot(data["Time"], data["WRRLat"] / 1000, color="green", label="WRRLat")
-ax.plot(data["Time"], data["WFLLat"] / 1000, color="blue", label="WFLLat")
-ax.plot(data["Time"], data["WFRLat"] / 1000, color="yellow", label="WFRLat")
-ax.set_xlim(x_limits)
+fig = new_figure(figname="Wheel LatForce", figsize=[12, 6])
+ax = plot_against_time(
+    x_series=data["Time"],
+    y_series=[data["WRLLat"] / 1000, data["WRRLat"] / 1000, data["WFLLat"] / 1000,
+              data["WFRLat"] / 1000],
+    colors=["red", "green", "blue", "yellow"],
+    labels=["WRLLat", "WRRLat", "WFLLat", "WFRLat"])
 ax.set_ylabel("Wheel LatForce (kN)")
 ax.set_title("Wheel LatForce")
 setup_plot()
 
-fig = plt.figure("Wheel LonForce", figsize=[12, 6])
-ax = plt.gca()
-ax.plot(data["Time"], data["WRLLon"] / 1000, color="red", label="WRLLon")
-ax.plot(data["Time"], data["WRRLon"] / 1000, color="green", label="WRRLon")
-ax.plot(data["Time"], data["WFLLon"] / 1000, color="blue", label="WFLLon")
-ax.plot(data["Time"], data["WFRLon"] / 1000, color="yellow", label="WFRLon")
-ax.set_xlim(x_limits)
+fig = new_figure(figname="Wheel LonForce", figsize=[12, 6])
+ax = plot_against_time(
+    x_series=data["Time"],
+    y_series=[data["WRLLon"] / 1000, data["WRRLon"] / 1000, data["WFLLon"] / 1000,
+              data["WFRLon"] / 1000],
+    colors=["red", "green", "blue", "yellow"],
+    labels=["WRLLon", "WRRLon", "WFLLon", "WFRLon"])
 ax.set_ylabel("Wheel LonForce (kN)")
 ax.set_title("Wheel LonForce")
 setup_plot()
 
-fig = plt.figure("Wheel Load", figsize=[12, 6])
-ax = plt.gca()
-ax.plot(data["Time"], data["WRLLoad"] / 1000, color="red", label="WRLLoad")
-ax.plot(data["Time"], data["WRRLoad"] / 1000, color="green", label="WRRLoad")
-ax.plot(data["Time"], data["WFLLoad"] / 1000, color="blue", label="WFLLoad")
-ax.plot(data["Time"], data["WFRLoad"] / 1000, color="yellow", label="WFRLoad")
-ax.set_xlim(x_limits)
+fig = new_figure(figname="Wheel Load", figsize=[12, 6])
+ax = plot_against_time(
+    x_series=data["Time"],
+    y_series=[data["WRLLoad"] / 1000, data["WRRLoad"] / 1000, data["WFLLoad"] / 1000,
+              data["WFRLoad"] / 1000],
+    colors=["red", "green", "blue", "yellow"],
+    labels=["WRLLoad", "WRRLoad", "WFLLoad", "WFRLoad"])
 ax.set_ylabel("Wheel Load (kN)")
 ax.set_title("Wheel Load")
 setup_plot()
 
-fig = plt.figure("Wheel Velocity", figsize=[12, 6])
-ax = plt.gca()
-ax.plot(data["Time"], data["WRLVel"], color="red", label="WRLVel")
-ax.plot(data["Time"], data["WRRVel"], color="green", label="WRRVel")
-ax.plot(data["Time"], data["WFLVel"], color="blue", label="WFLVel")
-ax.plot(data["Time"], data["WFRVel"], color="yellow", label="WFRVel")
-ax.set_xlim(x_limits)
+fig = new_figure(figname="Wheel Velocity", figsize=[12, 6])
+ax = plot_against_time(
+    x_series=data["Time"],
+    y_series=[data["WRLVel"], data["WRRVel"], data["WFLVel"], data["WFRVel"]],
+    colors=["red", "green", "blue", "yellow"],
+    labels=["WRLVel", "WRRVel", "WFLVel", "WFRVel"])
 ax.set_ylabel("Wheel Velocity (rad/s)")
 ax.set_title("Wheel Velocity")
 setup_plot()
 
-fig = plt.figure("Wheel Lean", figsize=[12, 6])
-ax = plt.gca()
-ax.plot(data["Time"], data["WRLLean"] * 180 / np.pi, color="red", label="WRLLean")
-ax.plot(data["Time"], data["WRRLean"] * 180 / np.pi, color="green", label="WRRLean")
-ax.plot(data["Time"], data["WFLLean"] * 180 / np.pi, color="blue", label="WFLLean")
-ax.plot(data["Time"], data["WFRLean"] * 180 / np.pi, color="yellow", label="WFRLean")
-ax.set_xlim(x_limits)
+fig = new_figure(figname="Wheel Lean", figsize=[12, 6])
+ax = plot_against_time(
+    x_series=data["Time"],
+    y_series=[data["WRLLean"] * 180 / np.pi, data["WRRLean"] * 180 / np.pi,
+              data["WFLLean"] * 180 / np.pi, data["WFRLean"] * 180 / np.pi],
+    colors=["red", "green", "blue", "yellow"],
+    labels=["WRLLean", "WRRLean", "WFLLean", "WFRLean"])
 ax.set_ylabel("Wheel Lean (deg)")
 ax.set_title("Wheel Lean")
 setup_plot()
 
-fig = plt.figure("Wheel Temperature", figsize=[12, 6])
-ax = plt.gca()
-ax.plot(data["Time"], data["WRLTemp"], color="red", label="WRLTemp")
-ax.plot(data["Time"], data["WRRTemp"], color="green", label="WRRTemp")
-ax.plot(data["Time"], data["WFLTemp"], color="blue", label="WFLTemp")
-ax.plot(data["Time"], data["WFRTemp"], color="yellow", label="WFRTemp")
-ax.set_xlim(x_limits)
+fig = new_figure(figname="Air Temperature", figsize=[12, 6])
+ax = plot_against_time(
+    x_series=data["Time"],
+    y_series=[data["WRLTemp"], data["WRRTemp"], data["WFLTemp"], data["WFRTemp"]],
+    colors=["red", "green", "blue", "yellow"],
+    labels=["WRLTemp", "WRRTemp", "WFLTemp", "WFRTemp"])
 ax.set_ylabel("Wheel Temperature (°C)")
 ax.set_title("Wheel Temperature")
 setup_plot()
 
-fig = plt.figure("Wheel Contact", figsize=[12, 6])
-ax = plt.gca()
-ax.plot(data["Time"], data["WRLTouch"], color="red", label="WRLTouch")
-ax.plot(data["Time"], data["WRRTouch"], color="green", label="WRRTouch")
-ax.plot(data["Time"], data["WFLTouch"], color="blue", label="WFLTouch")
-ax.plot(data["Time"], data["WFRTouch"], color="yellow", label="WFRTouch")
-ax.set_xlim(x_limits)
+fig = new_figure(figname="Wheel Contact", figsize=[12, 6])
+ax = plot_against_time(
+    x_series=data["Time"],
+    y_series=[data["WRLTouch"], data["WRRTouch"], data["WFLTouch"], data["WFRTouch"]],
+    colors=["red", "green", "blue", "yellow"],
+    labels=["WRLTouch", "WRRTouch", "WFLTouch", "WFRTouch"])
 ax.set_ylabel("Wheel Contact")
 ax.set_title("Wheel Contact")
 setup_plot()
 
-fig = plt.figure("Wheel Slip Fraction", figsize=[12, 6])
-ax = plt.gca()
-ax.plot(data["Time"], data["WRLSlipFrac"], color="red", label="WRLSlipFrac")
-ax.plot(data["Time"], data["WRRSlipFrac"], color="green", label="WRRSlipFrac")
-ax.plot(data["Time"], data["WFLSlipFrac"], color="blue", label="WFLSlipFrac")
-ax.plot(data["Time"], data["WFRSlipFrac"], color="yellow", label="WFRSlipFrac")
-ax.set_xlim(x_limits)
+fig = new_figure(figname="Wheel Slip Fraction", figsize=[12, 6])
+ax = plot_against_time(
+    x_series=data["Time"],
+    y_series=[data["WRLSlipFrac"], data["WRRSlipFrac"], data["WFLSlipFrac"], data["WFRSlipFrac"]],
+    colors=["red", "green", "blue", "yellow"],
+    labels=["WRLSlipFrac", "WRRSlipFrac", "WFLSlipFrac", "WFRSlipFrac"])
 ax.set_ylabel("Wheel Slip Fraction")
 ax.set_title("Wheel Slip Fraction")
 setup_plot()
 
-fig = plt.figure("Wheel Slip Ratio", figsize=[12, 6])
-ax = plt.gca()
-ax.plot(data["Time"], data["WRLSlipRatio"], color="red", label="WRLSlipRatio")
-ax.plot(data["Time"], data["WRRSlipRatio"], color="green", label="WRRSlipRatio")
-ax.plot(data["Time"], data["WFLSlipRatio"], color="blue", label="WFLSlipRatio")
-ax.plot(data["Time"], data["WFRSlipRatio"], color="yellow", label="WFRSlipRatio")
-ax.set_xlim(x_limits)
+fig = new_figure(figname="Wheel Slip Ratio", figsize=[12, 6])
+ax = plot_against_time(
+    x_series=data["Time"],
+    y_series=[data["WRLSlipRatio"], data["WRRSlipRatio"], data["WFLSlipRatio"],
+              data["WFRSlipRatio"]],
+    colors=["red", "green", "blue", "yellow"],
+    labels=["WRLSlipRatio", "WRRSlipRatio", "WFLSlipRatio", "WFRSlipRatio"])
 ax.set_ylabel("Wheel Slip Ratio")
 ax.set_title("Wheel Slip Ratio")
 setup_plot()
 
-fig = plt.figure("Wheel Tangent Slip Angle", figsize=[12, 6])
-ax = plt.gca()
-ax.plot(data["Time"], data["WRLTanSlip"], color="red", label="WRLTanSlip")
-ax.plot(data["Time"], data["WRRTanSlip"], color="green", label="WRRTanSlip")
-ax.plot(data["Time"], data["WFLTanSlip"], color="blue", label="WFLTanSlip")
-ax.plot(data["Time"], data["WFRTanSlip"], color="yellow", label="WFRTanSlip")
-ax.set_xlim(x_limits)
+fig = new_figure(figname="Wheel Tangent Slip Angle", figsize=[12, 6])
+ax = plot_against_time(
+    x_series=data["Time"],
+    y_series=[data["WRLTanSlip"], data["WRRTanSlip"], data["WFLTanSlip"], data["WFRTanSlip"]],
+    colors=["red", "green", "blue", "yellow"],
+    labels=["WRLTanSlip", "WRRTanSlip", "WFLTanSlip", "WFRTanSlip"])
 ax.set_ylabel("Wheel Tangent Slip Angle")
 ax.set_title("Wheel Tangent Slip Angle")
 setup_plot()
