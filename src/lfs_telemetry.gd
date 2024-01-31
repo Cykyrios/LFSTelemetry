@@ -55,9 +55,9 @@ func initialize_outsim() -> void:
 #region callbacks
 func _on_record_button_pressed() -> void:
 	if telemetry.recording:
-		telemetry.end_current_lap()
+		telemetry.stop_recording()
 	else:
-		telemetry.start_new_lap()
+		telemetry.start_recording()
 
 
 func _on_telemetry_started() -> void:
