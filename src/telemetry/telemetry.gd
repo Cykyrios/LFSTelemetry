@@ -2,6 +2,8 @@ class_name Telemetry
 extends RefCounted
 
 
+signal lap_data_written
+
 const INSIM_TIME_OFFSET := 3.0
 
 var player_id := 0
@@ -18,10 +20,16 @@ func end_current_lap() -> void:
 
 
 func process_lap_data(lap: LapData) -> void:
-	lap.sort_packets()
-	lap.fill_car_data()
-	lap.write_to_file("user://telemetry_%s.csv" % [Time.get_datetime_string_from_datetime_dict(
-			Time.get_datetime_dict_from_system(), true)])
+	var process_data_threaded := func process_data_threaded(lap_data: LapData) -> void:
+		lap_data.sort_packets()
+		lap_data.fill_car_data()
+		lap_data.write_to_file("user://telemetry_%s.csv" % [Time.get_datetime_string_from_datetime_dict(
+				Time.get_datetime_dict_from_system(), true)])
+		call_deferred("emit_signal", "lap_data_written")
+	var thread := Thread.new()
+	var _discard := thread.start(process_data_threaded.bind(lap))
+	await lap_data_written
+	thread.wait_to_finish()
 
 
 func save_outgauge_packet(packet: OutGaugePacket) -> void:
