@@ -33,6 +33,7 @@ func connect_signals() -> void:
 	_discard = insim.isp_rst_received.connect(_on_race_start_received)
 	_discard = insim.isp_sta_received.connect(_on_state_received)
 	_discard = insim.small_vta_received.connect(_on_small_vta_received)
+	_discard = insim.isp_npl_received.connect(_on_player_connection_received)
 
 	_discard = outgauge.packet_received.connect(_on_outgauge_packet_received)
 	_discard = outsim.packet_received.connect(_on_outsim_packet_received)
@@ -63,6 +64,7 @@ func _on_record_button_pressed() -> void:
 
 func _on_telemetry_started() -> void:
 	record_button.text = "Stop recording"
+	insim.send_state_request()
 
 
 func _on_telemetry_ended() -> void:
@@ -97,6 +99,13 @@ func _on_race_start_received(_packet: InSimRSTPacket) -> void:
 	insim.send_state_request()
 
 
+func _on_player_connection_received(packet: InSimNPLPacket) -> void:
+	if packet.player_id != telemetry.player_id:
+		return
+	telemetry.player_name = packet.player_name
+	telemetry.car = packet.car_name
+
+
 func _on_small_vta_received(packet: InSimSmallPacket) -> void:
 	if not (telemetry.recording):
 		return
@@ -111,8 +120,12 @@ func _on_split_received(packet: InSimSPXPacket) -> void:
 
 
 func _on_state_received(packet: InSimSTAPacket) -> void:
+	telemetry.track = packet.track
+	telemetry.weather = packet.weather
+	telemetry.wind = packet.wind
 	if telemetry.recording:
 		return
 	telemetry.player_id = packet.view_player_id
+	insim.send_player_list_request()
 #endregion
 #endregion

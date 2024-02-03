@@ -2,6 +2,7 @@ class_name LapData
 extends RefCounted
 
 
+var track := ""
 var lap_number := 0
 var lap_time := 0.0
 var total_time := 0.0
