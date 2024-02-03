@@ -27,6 +27,7 @@ func connect_signals() -> void:
 	_discard = EventBus.telemetry_started.connect(_on_telemetry_started)
 	_discard = EventBus.telemetry_ended.connect(_on_telemetry_ended)
 
+	_discard = insim.timeout.connect(_on_insim_timeout)
 	_discard = insim.isp_lap_received.connect(_on_lap_received)
 	_discard = insim.isp_spx_received.connect(_on_split_received)
 	_discard = insim.isp_rst_received.connect(_on_race_start_received)
@@ -68,6 +69,11 @@ func _on_telemetry_ended() -> void:
 	record_button.text = "Start recording"
 
 #region InSim/OutSim/OutGauge
+func _on_insim_timeout() -> void:
+	if telemetry.recording:
+		telemetry.stop_recording()
+
+
 func _on_lap_received(packet: InSimLAPPacket) -> void:
 	if packet.player_id != telemetry.player_id:
 		return
