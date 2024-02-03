@@ -13,6 +13,11 @@ var outsim_data: Array[OutSimPacket] = []
 var outgauge_data: Array[OutGaugePacket] = []
 
 
+func compute_derived_data() -> void:
+	for data in car_data:
+		data.compute_derived_values()
+
+
 func fill_car_data() -> void:
 	if outsim_data.is_empty():
 		return
@@ -52,6 +57,7 @@ func write_to_file(path: String) -> void:
 			"AccX", "AccY", "AccZ", "RotX", "RotY", "RotZ", "AngVelX", "AngVelY", "AngVelZ",
 			"Steer", "Throttle", "Brake", "Clutch", "HBrake", "ABS", "TC",
 			"Gear", "RPM", "Torque", "LapDist", "IndexDist",
+			"Speed", "LatG", "LonG", "VerG", "Pitch", "Roll",
 			"WRLSusp", "WRLSteer", "WRLLat", "WRLLon", "WRLLoad", "WRLVel", "WRLLean",
 			"WRLTemp", "WRLTouch", "WRLSlipFrac", "WRLSlipRatio", "WRLTanSlip",
 			"WRRSusp", "WRRSteer", "WRRLat", "WRRLon", "WRRLoad", "WRRVel", "WRRLean",
@@ -73,6 +79,7 @@ func write_to_file(path: String) -> void:
 			data.steering, data.throttle, data.brake, data.clutch, data.handbrake,
 			1 if data.abs_on else 0, 1 if data.tc_on else 0, data.gear, data.rpm, data.max_torque_at_rpm,
 			data.lap_distance, data.indexed_distance,
+			data.speed, data.g_forces.x, data.g_forces.y, data.g_forces.z, data.local_pitch, data.local_roll,
 		])
 		for i in data.wheel_data.size():
 			values.append_array([

@@ -2,6 +2,8 @@ class_name CarData
 extends RefCounted
 
 
+const GRAVITY := 9.81
+
 var time := 0.0
 
 var position := Vector3.ZERO
@@ -27,6 +29,19 @@ var lap_distance := 0.0
 var indexed_distance := 0.0
 
 var wheel_data: Array[WheelData] = []
+
+var speed := 0.0  ## Magnitude of velocity, km/h
+var g_forces := Vector3.ZERO  ## Right, Forward, Up
+var local_pitch := 0.0
+var local_roll := 0.0
+
+
+func compute_derived_values() -> void:
+	speed = velocity.length()
+	var basis := Basis.from_euler(orientation, EULER_ORDER_ZXY)
+	g_forces = acceleration * basis / GRAVITY
+	local_pitch = (orientation * basis).x
+	local_roll = (orientation * basis).y
 
 
 func fill_data_from_outsim_pack(outsim_pack: OutSimPack) -> void:
