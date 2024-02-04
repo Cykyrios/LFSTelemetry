@@ -3,7 +3,7 @@ extends RefCounted
 
 
 const IO_HEADER_BUFFER := 68
-const IO_SECTOR_BUFFER := 5
+const IO_SECTOR_BUFFER := 13
 const IO_LAP_BUFFER := 86
 
 var date := ""
@@ -124,6 +124,8 @@ func save_to_file(path: String) -> void:
 	for sector in sectors:
 		packet.add_byte(sector.sector_number)
 		packet.add_float(sector.sector_time)
+		packet.add_float(sector.split_time)
+		packet.add_float(sector.total_time)
 	file.store_buffer(packet.buffer)
 	for data in car_data:
 		packet = LFSPacket.new()
