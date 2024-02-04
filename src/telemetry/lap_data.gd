@@ -2,6 +2,10 @@ class_name LapData
 extends RefCounted
 
 
+const IO_HEADER_BUFFER := 68
+const IO_SECTOR_BUFFER := 5
+const IO_LAP_BUFFER := 86
+
 var date := ""
 var track := ""
 var weather := 0
@@ -53,7 +57,8 @@ func sort_packets() -> void:
 		return a.time <= b.time)
 
 
-func write_to_file(path: String) -> void:
+#region I/O
+func export_csv(path: String) -> void:
 	var file := FileAccess.open(path, FileAccess.WRITE)
 	var error := FileAccess.get_open_error()
 	if error != OK:
@@ -96,3 +101,55 @@ func write_to_file(path: String) -> void:
 				data.wheel_data[i].slip_ratio, data.wheel_data[i].tangent_slip_angle,
 			])
 		file.store_csv_line(values)
+
+
+func save_to_file(path: String) -> void:
+	var file := FileAccess.open(path, FileAccess.WRITE)
+	var error := FileAccess.get_open_error()
+	if error != OK:
+		return
+	var packet := LFSPacket.new()
+	var sector_count := sectors.size()
+	packet.resize_buffer(IO_HEADER_BUFFER + sector_count * IO_SECTOR_BUFFER)
+	packet.add_string(19, date)
+	packet.add_string(6, track)
+	packet.add_byte(weather)
+	packet.add_byte(wind)
+	packet.add_string(24, driver)
+	packet.add_string(6, car)
+	packet.add_word(lap_number)
+	packet.add_float(lap_time)
+	packet.add_float(total_time)
+	packet.add_byte(sector_count)
+	for sector in sectors:
+		packet.add_byte(sector.sector_number)
+		packet.add_float(sector.sector_time)
+	file.store_buffer(packet.buffer)
+	for data in car_data:
+		packet = LFSPacket.new()
+		packet.resize_buffer(IO_LAP_BUFFER)
+		packet.add_float(data.time)
+		packet.add_float(data.position.x)
+		packet.add_float(data.position.y)
+		packet.add_float(data.position.z)
+		packet.add_float(data.velocity.x)
+		packet.add_float(data.velocity.y)
+		packet.add_float(data.velocity.z)
+		packet.add_float(data.acceleration.x)
+		packet.add_float(data.acceleration.y)
+		packet.add_float(data.acceleration.z)
+		packet.add_float(data.orientation.x)
+		packet.add_float(data.orientation.y)
+		packet.add_float(data.orientation.z)
+		packet.add_float(data.angular_velocity.x)
+		packet.add_float(data.angular_velocity.y)
+		packet.add_float(data.angular_velocity.z)
+		packet.add_float(data.steering)
+		packet.add_float(data.throttle)
+		packet.add_float(data.brake)
+		packet.add_float(data.clutch)
+		packet.add_float(data.handbrake)
+		packet.add_byte(1 if data.abs_on else 0)
+		packet.add_byte(1 if data.tc_on else 0)
+		file.store_buffer(packet.buffer)
+#endregion
