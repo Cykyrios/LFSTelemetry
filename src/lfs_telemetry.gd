@@ -79,6 +79,8 @@ func _on_insim_timeout() -> void:
 
 
 func _on_lap_received(packet: InSimLAPPacket) -> void:
+	if not telemetry.recording:
+		return
 	if packet.player_id != telemetry.player_id:
 		return
 	telemetry.save_lap(packet)
