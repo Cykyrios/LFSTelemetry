@@ -2,7 +2,12 @@ class_name LapData
 extends RefCounted
 
 
+var date := ""
 var track := ""
+var weather := 0
+var wind := 0
+var driver := ""
+var car := ""
 var lap_number := 0
 var lap_time := 0.0
 var total_time := 0.0

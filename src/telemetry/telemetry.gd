@@ -25,6 +25,12 @@ func end_current_lap() -> void:
 
 func process_lap_data(lap: LapData) -> void:
 	var process_data_threaded := func process_data_threaded(lap_data: LapData) -> void:
+		lap_data.date = Time.get_datetime_string_from_system(true, true)
+		lap_data.track = track
+		lap_data.weather = weather
+		lap_data.wind = wind
+		lap_data.car = car
+		lap_data.driver = player_name
 		lap_data.sort_packets()
 		lap_data.fill_car_data()
 		lap_data.compute_derived_data()
