@@ -103,6 +103,64 @@ func export_csv(path: String) -> void:
 		file.store_csv_line(values)
 
 
+func load_from_file(path: String) -> void:
+	var file := FileAccess.open(path, FileAccess.READ)
+	var error := FileAccess.get_open_error()
+	if error != OK:
+		return
+	var packet := LFSPacket.new()
+	var buffer := file.get_buffer(IO_HEADER_BUFFER)
+	date = packet.read_string(buffer, 19)
+	track = packet.read_string(buffer, 6)
+	weather = packet.read_byte(buffer)
+	wind = packet.read_byte(buffer)
+	driver = packet.read_string(buffer, 24)
+	car = packet.read_string(buffer, 6)
+	lap_number = packet.read_word(buffer)
+	lap_time = packet.read_float(buffer)
+	total_time = packet.read_float(buffer)
+	var sector_count := packet.read_byte(buffer)
+	buffer = file.get_buffer(sector_count * IO_SECTOR_BUFFER)
+	packet.data_offset = 0
+	sectors.clear()
+	for i in sector_count:
+		var sector := SectorData.new()
+		sector.sector_number = packet.read_byte(buffer)
+		sector.sector_time = packet.read_float(buffer)
+		sector.split_time = packet.read_float(buffer)
+		sector.total_time = packet.read_float(buffer)
+		sectors.append(sector)
+	car_data.clear()
+	while file.get_position() < file.get_length():
+		buffer = file.get_buffer(IO_LAP_BUFFER)
+		packet.data_offset = 0
+		var data := CarData.new()
+		data.time = packet.read_float(buffer)
+		data.position.x = packet.read_float(buffer)
+		data.position.y = packet.read_float(buffer)
+		data.position.z = packet.read_float(buffer)
+		data.velocity.x = packet.read_float(buffer)
+		data.velocity.y = packet.read_float(buffer)
+		data.velocity.z = packet.read_float(buffer)
+		data.acceleration.x = packet.read_float(buffer)
+		data.acceleration.y = packet.read_float(buffer)
+		data.acceleration.z = packet.read_float(buffer)
+		data.orientation.x = packet.read_float(buffer)
+		data.orientation.y = packet.read_float(buffer)
+		data.orientation.z = packet.read_float(buffer)
+		data.angular_velocity.x = packet.read_float(buffer)
+		data.angular_velocity.y = packet.read_float(buffer)
+		data.angular_velocity.z = packet.read_float(buffer)
+		data.steering = packet.read_float(buffer)
+		data.throttle = packet.read_float(buffer)
+		data.brake = packet.read_float(buffer)
+		data.clutch = packet.read_float(buffer)
+		data.handbrake = packet.read_float(buffer)
+		data.abs_on = true if packet.read_byte(buffer) > 0 else false
+		data.tc_on = true if packet.read_byte(buffer) > 0 else false
+		car_data.append(data)
+
+
 func save_to_file(path: String) -> void:
 	var file := FileAccess.open(path, FileAccess.WRITE)
 	var error := FileAccess.get_open_error()
