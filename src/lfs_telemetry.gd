@@ -54,6 +54,7 @@ func initialize_outgauge() -> void:
 func initialize_outsim() -> void:
 	outsim.initialize(outsim_options)
 
+
 #region callbacks
 func _on_record_button_pressed() -> void:
 	if telemetry.recording:
@@ -69,6 +70,7 @@ func _on_telemetry_started() -> void:
 
 func _on_telemetry_ended() -> void:
 	record_button.text = "Start recording"
+
 
 #region InSim/OutSim/OutGauge
 func _on_insim_timeout() -> void:
