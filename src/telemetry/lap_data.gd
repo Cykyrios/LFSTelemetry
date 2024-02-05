@@ -4,7 +4,8 @@ extends RefCounted
 
 const IO_HEADER_BUFFER := 68
 const IO_SECTOR_BUFFER := 13
-const IO_LAP_BUFFER := 86
+const IO_LAP_BUFFER := 103
+const IO_WHEEL_BUFFER := 42
 
 var date := ""
 var track := ""
@@ -187,7 +188,7 @@ func save_to_file(path: String) -> void:
 	file.store_buffer(packet.buffer)
 	for data in car_data:
 		packet = LFSPacket.new()
-		packet.resize_buffer(IO_LAP_BUFFER)
+		packet.resize_buffer(IO_LAP_BUFFER + data.wheel_data.size() * IO_WHEEL_BUFFER)
 		packet.add_float(data.time)
 		packet.add_float(data.position.x)
 		packet.add_float(data.position.y)
@@ -211,5 +212,23 @@ func save_to_file(path: String) -> void:
 		packet.add_float(data.handbrake)
 		packet.add_byte(1 if data.abs_on else 0)
 		packet.add_byte(1 if data.tc_on else 0)
+		packet.add_byte(data.gear + 1)
+		packet.add_float(data.rpm)
+		packet.add_float(data.max_torque_at_rpm)
+		packet.add_float(data.lap_distance)
+		packet.add_float(data.indexed_distance)
+		for wheel_data in data.wheel_data:
+			packet.add_float(wheel_data.suspension_deflection)
+			packet.add_float(wheel_data.steer)
+			packet.add_float(wheel_data.lateral_force)
+			packet.add_float(wheel_data.longitudinal_force)
+			packet.add_float(wheel_data.vertical_load)
+			packet.add_float(wheel_data.angular_velocity)
+			packet.add_float(wheel_data.lean_relative_to_road)
+			packet.add_byte(wheel_data.air_temperature)
+			packet.add_byte(1 if wheel_data.touching else 0)
+			packet.add_float(wheel_data.slip_fraction)
+			packet.add_float(wheel_data.slip_ratio)
+			packet.add_float(wheel_data.tangent_slip_angle)
 		file.store_buffer(packet.buffer)
 #endregion
