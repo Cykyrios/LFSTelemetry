@@ -17,7 +17,7 @@ var vertical_load := 0.0
 var angular_velocity := 0.0
 var lean_relative_to_road := 0.0
 
-var air_temperature := 0.0
+var air_temperature := 0
 var touching := false
 var slip_fraction := 0.0
 var slip_ratio := 0.0
