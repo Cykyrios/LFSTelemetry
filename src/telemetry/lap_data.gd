@@ -182,6 +182,7 @@ func load_from_file(path: String) -> void:
 			wheel_data.tangent_slip_angle = packet.read_float()
 			data.wheel_data.append(wheel_data)
 		car_data.append(data)
+	compute_derived_data()
 
 
 func save_to_file(path: String) -> void:
