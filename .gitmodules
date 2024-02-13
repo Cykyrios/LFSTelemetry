@@ -1,3 +1,6 @@
 [submodule "addons/godot_insim"]
 	path = addons/godot_insim
 	url = https://github.com/Cykyrios/GodotInSim
+[submodule "addons/color_maps"]
+	path = addons/color_maps
+	url = git@github.com:Cykyrios/GodotColorMaps.git
