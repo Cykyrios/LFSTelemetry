@@ -36,7 +36,6 @@ func process_lap_data(lap: LapData) -> void:
 		lap_data.compute_derived_data()
 		var file_name := "%s_%s_%s" % [track, car, lap_data.date]
 		lap_data.save_to_file("user://%s.tlm" % [file_name])
-		lap_data.export_csv("user://%s.csv" % [file_name])
 		call_deferred("emit_signal", "lap_data_written")
 	var thread := Thread.new()
 	var _discard := thread.start(process_data_threaded.bind(lap))
