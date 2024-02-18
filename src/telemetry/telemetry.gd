@@ -34,7 +34,8 @@ func process_lap_data(lap: LapData) -> void:
 		lap_data.sort_packets()
 		lap_data.fill_car_data()
 		lap_data.compute_derived_data()
-		var file_name := "%s_%s_%s" % [track, car, lap_data.date]
+		var file_name := "%s %s %s %s" % [track, car, lap_data.date,
+				Utils.get_lap_time_string(lap_data.lap_time)]
 		lap_data.save_to_file("user://%s.tlm" % [file_name])
 		call_deferred("emit_signal", "lap_data_written")
 	var thread := Thread.new()
