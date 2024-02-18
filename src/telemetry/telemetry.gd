@@ -4,7 +4,7 @@ extends RefCounted
 
 signal lap_data_written
 
-const INSIM_TIME_OFFSET := 3.0
+const INSIM_TIME_OFFSET := 3000  ## InSim vs OutSim/OutGauge time offset (ms), InSim is early
 
 var player_id := 0
 var recorded_laps: Array[LapData] = []
@@ -68,7 +68,7 @@ func save_sector(packet: InSimSPXPacket) -> void:
 	for i in current_lap.sectors.size():
 		sector_time -= current_lap.sectors[i].sector_time
 	sector_data.sector_time = sector_time
-	sector_data.total_time = packet.elapsed_time / 1000.0 + INSIM_TIME_OFFSET
+	sector_data.total_time = (packet.elapsed_time + INSIM_TIME_OFFSET) / 1000.0
 	current_lap.sectors.append(sector_data)
 
 
@@ -79,7 +79,7 @@ func save_lap(packet: InSimLAPPacket) -> void:
 		return
 	current_lap.lap_number = packet.laps_done
 	current_lap.lap_time = packet.lap_time / 1000.0
-	current_lap.total_time = packet.elapsed_time / 1000.0 + INSIM_TIME_OFFSET
+	current_lap.total_time = (packet.elapsed_time + INSIM_TIME_OFFSET) / 1000.0
 	var split_packet := InSimSPXPacket.new()
 	split_packet.player_id = packet.player_id
 	split_packet.split = 0 if current_lap.sectors.is_empty() or current_lap.sectors[-1].sector_number == 0 \
