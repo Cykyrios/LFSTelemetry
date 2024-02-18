@@ -104,7 +104,7 @@ func export_csv(path: String) -> void:
 		file.store_csv_line(values)
 
 
-func load_from_file(path: String) -> void:
+func load_from_file(path: String, skip_telemetry := false) -> void:
 	var file := FileAccess.open(path, FileAccess.READ)
 	var error := FileAccess.get_open_error()
 	if error != OK:
@@ -131,6 +131,8 @@ func load_from_file(path: String) -> void:
 		sector.split_time = packet.read_float()
 		sector.total_time = packet.read_float()
 		sectors.append(sector)
+	if skip_telemetry:
+		return
 	car_data.clear()
 	while file.get_position() < file.get_length():
 		packet.buffer = file.get_buffer(IO_LAP_BUFFER)
