@@ -19,6 +19,9 @@ var total_time := 0.0
 var sectors: Array[SectorData] = []
 
 var car_data: Array[CarData] = []
+
+var insim_start_time := 0
+var insim_end_time := 0
 var outsim_data: Array[OutSimPacket] = []
 var outgauge_data: Array[OutGaugePacket] = []
 

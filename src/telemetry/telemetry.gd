@@ -19,6 +19,7 @@ var car := ""
 
 
 func end_current_lap() -> void:
+	save_current_lap_insim_time()
 	current_lap = null
 	process_lap_data(recorded_laps[-1])
 
@@ -56,6 +57,18 @@ func save_outsim_packet(packet: OutSimPacket) -> void:
 	current_lap.outsim_data.append(packet)
 
 
+func save_current_lap_insim_time(packet: InSimLAPPacket = null) -> void:
+	if not current_lap:
+		return
+	if not packet and (current_lap.insim_start_time > 0 or current_lap.insim_end_time > 0):
+		return
+	if recorded_laps.size() > 1:
+		current_lap.insim_start_time = recorded_laps[-2].insim_end_time
+	else:
+		current_lap.insim_start_time = current_lap.outgauge_data[0].time + INSIM_TIME_OFFSET
+	current_lap.insim_end_time = packet.elapsed_time if packet else current_lap.outgauge_data[-1].time
+
+
 func save_sector(packet: InSimSPXPacket) -> void:
 	if not current_lap:
 		return
@@ -77,6 +90,7 @@ func save_lap(packet: InSimLAPPacket) -> void:
 		return
 	if packet.player_id != player_id:
 		return
+	save_current_lap_insim_time(packet)
 	current_lap.lap_number = packet.laps_done
 	current_lap.lap_time = packet.lap_time / 1000.0
 	current_lap.total_time = (packet.elapsed_time + INSIM_TIME_OFFSET) / 1000.0
