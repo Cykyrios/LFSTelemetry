@@ -7,7 +7,7 @@ var outsim := OutSim.new()
 
 var outsim_options := 0x1ff
 
-var telemetry := Telemetry.new()
+var recorder := Recorder.new()
 
 @onready var record_button := %RecordButton as Button
 @onready var target_label := %TargetLabel as Label
@@ -63,10 +63,10 @@ func _on_driver_updated(driver_name: String, car: String) -> void:
 
 
 func _on_record_button_pressed() -> void:
-	if telemetry.recording:
-		telemetry.stop_recording()
+	if recorder.recording:
+		recorder.stop_recording()
 	else:
-		telemetry.start_recording()
+		recorder.start_recording()
 
 
 func _on_telemetry_started() -> void:
@@ -80,62 +80,62 @@ func _on_telemetry_ended() -> void:
 
 #region InSim/OutSim/OutGauge
 func _on_insim_timeout() -> void:
-	if telemetry.recording:
-		telemetry.stop_recording()
+	if recorder.recording:
+		recorder.stop_recording()
 
 
 func _on_lap_received(packet: InSimLAPPacket) -> void:
-	if not telemetry.recording:
+	if not recorder.recording:
 		return
-	if packet.player_id != telemetry.player_id:
+	if packet.player_id != recorder.player_id:
 		return
-	telemetry.save_lap(packet)
-	if telemetry.current_lap:
-		telemetry.end_current_lap()
+	recorder.save_lap(packet)
+	if recorder.current_lap:
+		recorder.end_current_lap()
 
 
 func _on_outgauge_packet_received(packet: OutGaugePacket) -> void:
-	telemetry.save_outgauge_packet(packet)
+	recorder.save_outgauge_packet(packet)
 
 
 func _on_outsim_packet_received(packet: OutSimPacket) -> void:
-	telemetry.save_outsim_packet(packet)
+	recorder.save_outsim_packet(packet)
 
 
 func _on_race_start_received(_packet: InSimRSTPacket) -> void:
-	if telemetry.recording:
-		telemetry.end_current_lap()
+	if recorder.recording:
+		recorder.end_current_lap()
 	insim.send_state_request()
 
 
 func _on_player_connection_received(packet: InSimNPLPacket) -> void:
-	if packet.player_id != telemetry.player_id:
+	if packet.player_id != recorder.player_id:
 		return
-	telemetry.player_name = packet.player_name
-	telemetry.car = packet.car_name
-	EventBus.driver_updated.emit(telemetry.player_name, telemetry.car)
+	recorder.player_name = packet.player_name
+	recorder.car = packet.car_name
+	EventBus.driver_updated.emit(recorder.player_name, recorder.car)
 
 
 func _on_small_vta_received(packet: InSimSmallPacket) -> void:
-	if not (telemetry.recording):
+	if not (recorder.recording):
 		return
 	if packet.value in [InSim.Vote.VOTE_END, InSim.Vote.VOTE_RESTART, InSim.Vote.VOTE_QUALIFY]:
-		telemetry.end_current_lap()
+		recorder.end_current_lap()
 
 
 func _on_split_received(packet: InSimSPXPacket) -> void:
-	if packet.player_id != telemetry.player_id:
+	if packet.player_id != recorder.player_id:
 		return
-	telemetry.save_sector(packet)
+	recorder.save_sector(packet)
 
 
 func _on_state_received(packet: InSimSTAPacket) -> void:
-	telemetry.track = packet.track
-	telemetry.weather = packet.weather
-	telemetry.wind = packet.wind
-	if telemetry.recording:
+	recorder.track = packet.track
+	recorder.weather = packet.weather
+	recorder.wind = packet.wind
+	if recorder.recording:
 		return
-	telemetry.player_id = packet.view_player_id
+	recorder.player_id = packet.view_player_id
 	insim.send_player_list_request()
 #endregion
 #endregion
