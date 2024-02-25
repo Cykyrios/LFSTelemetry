@@ -86,7 +86,6 @@ func _on_lap_received(packet: InSimLAPPacket) -> void:
 	telemetry.save_lap(packet)
 	if telemetry.current_lap:
 		telemetry.end_current_lap()
-	telemetry.start_new_lap()
 
 
 func _on_outgauge_packet_received(packet: OutGaugePacket) -> void:

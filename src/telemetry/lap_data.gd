@@ -32,8 +32,6 @@ func compute_derived_data() -> void:
 
 
 func fill_car_data() -> void:
-	if outsim_data.is_empty():
-		return
 	# OutGauge is more reliable as OutSim only records in cockpit or custom views
 	var data_point_count := outgauge_data.size()
 	var _discard := car_data.resize(data_point_count)
@@ -45,11 +43,13 @@ func fill_car_data() -> void:
 	for i in data_point_count:
 		var new_car_data := CarData.new()
 		var outgauge_packet := outgauge_data[i]
+		new_car_data._session_time = outgauge_packet.time
 		new_car_data.time = (outgauge_packet.time - first_time_stamp) / 1000.0
 		var dash_lights := outgauge_packet.get_lights_array(outgauge_packet.show_lights)
 		new_car_data.tc_on = true if dash_lights[OutGaugePacket.DLFlags.DL_TC] == 1 else false
 		new_car_data.abs_on = true if dash_lights[OutGaugePacket.DLFlags.DL_ABS] == 1 else false
-		var outsim_pack := outsim_data[outsim_time_stamps.find(outgauge_packet.time)].outsim_pack
+		var outsim_idx := outsim_time_stamps.find(outgauge_packet.time)
+		var outsim_pack := OutSimPack.new() if outsim_idx < 0 else outsim_data[outsim_idx].outsim_pack
 		new_car_data.fill_data_from_outsim_pack(outsim_pack)
 		car_data[i] = new_car_data
 
