@@ -10,6 +10,7 @@ var outsim_options := 0x1ff
 var telemetry := Telemetry.new()
 
 @onready var record_button := %RecordButton as Button
+@onready var target_label := %TargetLabel as Label
 
 
 func _ready() -> void:
@@ -26,6 +27,7 @@ func connect_signals() -> void:
 	var _discard := record_button.pressed.connect(_on_record_button_pressed)
 	_discard = EventBus.telemetry_started.connect(_on_telemetry_started)
 	_discard = EventBus.telemetry_ended.connect(_on_telemetry_ended)
+	_discard = EventBus.driver_updated.connect(_on_driver_updated)
 
 	_discard = insim.timeout.connect(_on_insim_timeout)
 	_discard = insim.isp_lap_received.connect(_on_lap_received)
@@ -56,6 +58,10 @@ func initialize_outsim() -> void:
 
 
 #region callbacks
+func _on_driver_updated(driver_name: String, car: String) -> void:
+	target_label.text = "Target: %s (%s)" % [driver_name, car]
+
+
 func _on_record_button_pressed() -> void:
 	if telemetry.recording:
 		telemetry.stop_recording()
@@ -107,6 +113,7 @@ func _on_player_connection_received(packet: InSimNPLPacket) -> void:
 		return
 	telemetry.player_name = packet.player_name
 	telemetry.car = packet.car_name
+	EventBus.driver_updated.emit(telemetry.player_name, telemetry.car)
 
 
 func _on_small_vta_received(packet: InSimSmallPacket) -> void:
