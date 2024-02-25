@@ -11,6 +11,7 @@ var elapsed_time_offset := 0
 var player_id := 0
 var current_lap: LapData = null
 var recording := false
+var session_dir := ""
 
 var track := ""
 var weather := 0
@@ -66,7 +67,7 @@ func process_lap_data(lap: LapData) -> void:
 		remove_excess_data(lap_data)
 		var file_name := "%s %s %s %s" % [track, car, lap_data.date,
 				Utils.get_lap_time_string(lap_data.lap_time)]
-		lap_data.save_to_file("user://%s.tlm" % [file_name])
+		lap_data.save_to_file("user://tlm/%s/%s.tlm" % [session_dir, file_name])
 		call_deferred("emit_signal", "lap_data_written")
 	var thread := Thread.new()
 	var _discard := thread.start(process_data_threaded.bind(lap))
@@ -137,6 +138,8 @@ func save_lap(packet: InSimLAPPacket) -> void:
 func start_recording() -> void:
 	EventBus.telemetry_started.emit()
 	recording = true
+	session_dir = "%s %s %s" % [track, car, Time.get_datetime_string_from_system(true, true)]
+	var _discard := DirAccess.make_dir_recursive_absolute("user://tlm/%s/" % [session_dir])
 	current_lap = LapData.new()
 
 
