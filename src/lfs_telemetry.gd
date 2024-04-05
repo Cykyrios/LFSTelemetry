@@ -10,7 +10,7 @@ var outsim_options := 0x1ff
 var recorder := Recorder.new()
 
 @onready var record_button := %RecordButton as Button
-@onready var target_label := %TargetLabel as Label
+@onready var target_label := %TargetLabel as RichTextLabel
 
 
 func _ready() -> void:
@@ -21,6 +21,12 @@ func _ready() -> void:
 	initialize_outgauge()
 	initialize_outsim()
 	connect_signals()
+
+func _exit_tree() -> void:
+	insim.close()
+	outgauge.close()
+	outsim.close()
+
 
 
 func connect_signals() -> void:
@@ -44,9 +50,9 @@ func connect_signals() -> void:
 func initialize_insim() -> void:
 	var initialization_data := InSimInitializationData.new()
 	initialization_data.i_name = "GIS Telemetry"
-	initialization_data.flags |= InSim.InitFlag.ISF_LOCAL
-	initialization_data.interval = 1
-	insim.initialize(initialization_data)
+	initialization_data.flags |= InSim.InitFlag.ISF_LOCAL | InSim.InitFlag.ISF_MSO_COLS \
+			| InSim.InitFlag.ISF_CON | InSim.InitFlag.ISF_OBH | InSim.InitFlag.ISF_HLV
+	insim.initialize("127.0.0.1", 29_999, initialization_data, false, false)
 
 
 func initialize_outgauge() -> void:
@@ -59,7 +65,7 @@ func initialize_outsim() -> void:
 
 #region callbacks
 func _on_driver_updated(driver_name: String, car: String) -> void:
-	target_label.text = "Target: %s (%s)" % [driver_name, car]
+	target_label.text = "Target: %s (%s)" % [LFSText.lfs_colors_to_bbcode(driver_name), car]
 
 
 func _on_record_button_pressed() -> void:
@@ -71,7 +77,7 @@ func _on_record_button_pressed() -> void:
 
 func _on_telemetry_started() -> void:
 	record_button.text = "Stop recording"
-	insim.send_state_request()
+	insim.send_packet(InSimTinyPacket.new(1, InSim.Tiny.TINY_SST))
 
 
 func _on_telemetry_ended() -> void:
@@ -105,7 +111,7 @@ func _on_outsim_packet_received(packet: OutSimPacket) -> void:
 func _on_race_start_received(_packet: InSimRSTPacket) -> void:
 	if recorder.recording:
 		recorder.end_current_lap()
-	insim.send_state_request()
+	insim.send_packet(InSimTinyPacket.new(1, InSim.Tiny.TINY_SST))
 
 
 func _on_player_connection_received(packet: InSimNPLPacket) -> void:
@@ -136,6 +142,6 @@ func _on_state_received(packet: InSimSTAPacket) -> void:
 	if recorder.recording:
 		return
 	recorder.player_id = packet.view_player_id
-	insim.send_player_list_request()
+	insim.send_packet(InSimTinyPacket.new(1, InSim.Tiny.TINY_NPL))
 #endregion
 #endregion
