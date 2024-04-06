@@ -34,6 +34,8 @@ func compute_derived_data() -> void:
 func fill_car_data() -> void:
 	# OutGauge is more reliable as OutSim only records in cockpit or custom views
 	var data_point_count := outgauge_data.size()
+	if data_point_count == 0:
+		return
 	var _discard := car_data.resize(data_point_count)
 	var outsim_time_stamps: Array[int] = []
 	_discard = outsim_time_stamps.resize(outsim_data.size())
