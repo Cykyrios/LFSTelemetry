@@ -77,19 +77,21 @@ func process_lap_data(lap: LapData) -> void:
 
 
 func remove_excess_data(lap_data: LapData) -> void:
-	if lap_data.lap_time == 0 or is_equal_approx(lap_data.lap_time, 3600):
-		return
-	while lap_data.car_data[0]._session_time < 1000 * (lap_data.total_time - lap_data.lap_time) \
-			+ elapsed_time_offset:
+	# Use 50% data point lap distance as reference for first point "overflow".
+	# This should work even with partial lap recordings.
+	var half_data_index := int(lap_data.car_data.size() / 2.0)
+	while lap_data.car_data[0].lap_distance > lap_data.car_data[half_data_index].lap_distance:
 		lap_data.car_data.pop_front()
-	# Use indexed distance from 50% data point as reference for first point "overflow"
-	@warning_ignore("integer_division")
-	var half_data_index := lap_data.car_data.size() / 2
-	if lap_data.car_data[0].indexed_distance > lap_data.car_data[half_data_index].indexed_distance:
+	while lap_data.car_data[-1].lap_distance < lap_data.car_data[half_data_index].lap_distance:
+		lap_data.car_data.pop_back()
+	if (
+		lap_data.car_data[half_data_index].indexed_distance > 0 and
+		lap_data.car_data[0].indexed_distance > lap_data.car_data[half_data_index].indexed_distance
+		or lap_data.car_data[half_data_index].indexed_distance == 0 and
+		lap_data.car_data[0].lap_distance > lap_data.car_data[half_data_index].lap_distance
+	):
 		lap_data.car_data[0].lap_distance = 0
 		lap_data.car_data[0].indexed_distance = 0
-	while lap_data.car_data[-1]._session_time > 1000 * lap_data.total_time + elapsed_time_offset:
-		lap_data.car_data.pop_back()
 
 
 func save_outgauge_packet(packet: OutGaugePacket) -> void:
