@@ -2,7 +2,12 @@ class_name LapData
 extends RefCounted
 
 
-const IO_HEADER_BUFFER := 68
+enum LapFlag {
+	INLAP = 1,
+	OUTLAP = 2,
+}
+
+const IO_HEADER_BUFFER := 69
 const IO_SECTOR_BUFFER := 13
 const IO_LAP_BUFFER := 103
 const IO_WHEEL_BUFFER := 42
@@ -17,6 +22,8 @@ var lap_number := 0
 var lap_time := 0.0
 var total_time := 0.0
 var sectors: Array[SectorData] = []
+var inlap := false
+var outlap := false
 
 var car_data: Array[CarData] = []
 
@@ -54,6 +61,17 @@ func fill_car_data() -> void:
 		var outsim_pack := OutSimPack.new() if outsim_idx < 0 else outsim_data[outsim_idx].outsim_pack
 		new_car_data.fill_data_from_outsim_pack(outsim_pack)
 		car_data[i] = new_car_data
+
+
+func get_lap_flags() -> int:
+	var flags := 0
+	flags |= (LapFlag.INLAP if inlap else 0) | (LapFlag.OUTLAP if outlap else 0)
+	return flags
+
+
+func set_lap_flags(flags: int) -> void:
+	inlap = flags & LapFlag.INLAP
+	outlap = flags & LapFlag.OUTLAP
 
 
 func sort_packets() -> void:
@@ -123,6 +141,7 @@ func load_from_file(path: String, skip_telemetry := false) -> void:
 	driver = packet.read_string_as_utf8(24)
 	car = packet.read_string_as_utf8(6)
 	lap_number = packet.read_word()
+	set_lap_flags(packet.read_byte())
 	lap_time = packet.read_float()
 	total_time = packet.read_float()
 	var sector_count := packet.read_byte()
@@ -207,6 +226,7 @@ func save_to_file(path: String) -> void:
 	packet.add_string_as_utf8(24, driver)
 	packet.add_string_as_utf8(6, car)
 	packet.add_word(lap_number)
+	packet.add_byte(get_lap_flags())
 	packet.add_float(lap_time)
 	packet.add_float(total_time)
 	packet.add_byte(sector_count)

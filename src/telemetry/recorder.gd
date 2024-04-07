@@ -39,6 +39,8 @@ func delete_previous_lap_data() -> void:
 	current_lap.lap_time = 0
 	current_lap.total_time = 0
 	current_lap.sectors.clear()
+	current_lap.inlap = false
+	current_lap.outlap = false
 
 
 func end_current_lap() -> void:

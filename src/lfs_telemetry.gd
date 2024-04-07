@@ -40,6 +40,7 @@ func connect_signals() -> void:
 	_discard = insim.timeout.connect(_on_insim_timeout)
 	_discard = insim.isp_lap_received.connect(_on_lap_received)
 	_discard = insim.isp_spx_received.connect(_on_split_received)
+	_discard = insim.isp_pla_received.connect(_on_pitlane_received)
 	_discard = insim.isp_rst_received.connect(_on_race_start_received)
 	_discard = insim.isp_sta_received.connect(_on_state_received)
 	_discard = insim.small_vta_received.connect(_on_small_vta_received)
@@ -119,6 +120,18 @@ func _on_race_start_received(_packet: InSimRSTPacket) -> void:
 	if recorder.recording:
 		recorder.end_current_lap()
 	insim.send_packet(InSimTinyPacket.new(1, InSim.Tiny.TINY_SST))
+
+
+func _on_pitlane_received(packet: InSimPLAPacket) -> void:
+	if (
+		not recorder.current_lap
+		or packet.player_id != recorder.player_id
+	):
+		return
+	if packet.fact == InSim.PitLane.PITLANE_EXIT:
+		recorder.current_lap.outlap = true
+	elif packet.fact < InSim.PitLane.PITLANE_NUM:
+		recorder.current_lap.inlap = true
 
 
 func _on_player_connection_received(packet: InSimNPLPacket) -> void:
