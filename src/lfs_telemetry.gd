@@ -14,13 +14,14 @@ var recorder := Recorder.new()
 
 
 func _ready() -> void:
+	connect_signals()
 	add_child(insim)
 	add_child(outgauge)
 	add_child(outsim)
 	initialize_insim()
 	initialize_outgauge()
 	initialize_outsim()
-	connect_signals()
+
 
 func _exit_tree() -> void:
 	insim.close()
@@ -35,6 +36,7 @@ func connect_signals() -> void:
 	_discard = EventBus.telemetry_ended.connect(_on_telemetry_ended)
 	_discard = EventBus.driver_updated.connect(_on_driver_updated)
 
+	_discard = insim.connected.connect(_on_insim_connected)
 	_discard = insim.timeout.connect(_on_insim_timeout)
 	_discard = insim.isp_lap_received.connect(_on_lap_received)
 	_discard = insim.isp_spx_received.connect(_on_split_received)
@@ -85,6 +87,11 @@ func _on_telemetry_ended() -> void:
 
 
 #region InSim/OutSim/OutGauge
+func _on_insim_connected() -> void:
+	await insim.isp_ver_received
+	insim.send_packet(InSimTinyPacket.new(1, InSim.Tiny.TINY_SST))
+
+
 func _on_insim_timeout() -> void:
 	if recorder.recording:
 		recorder.stop_recording()
