@@ -56,6 +56,15 @@ func process_lap_data(lap: LapData) -> void:
 		lap_data.sort_packets()
 		lap_data.fill_car_data()
 		remove_excess_data(lap_data)
+		if (
+			lap_data.car_data.size() > 1 and
+			(lap_data.car_data[1].indexed_distance > 0 and
+			lap_data.car_data[0].indexed_distance > lap_data.car_data[1].indexed_distance
+			or lap_data.car_data[1].indexed_distance == 0 and
+			lap_data.car_data[0].lap_distance > lap_data.car_data[1].lap_distance)
+		):
+			lap_data.car_data[0].lap_distance = 0
+			lap_data.car_data[0].indexed_distance = 0
 		var file_name := "%s %s %s %s" % [track, car, lap_data.date,
 				Utils.get_lap_time_string(lap_data.lap_time)]
 		lap_data.save_to_file("user://tlm/%s/%s.tlm" % [session_dir, file_name])
@@ -75,14 +84,6 @@ func remove_excess_data(lap_data: LapData) -> void:
 		lap_data.car_data.pop_front()
 	while lap_data.car_data[-1].lap_distance < lap_data.car_data[half_data_index].lap_distance:
 		lap_data.car_data.pop_back()
-	if (
-		lap_data.car_data[half_data_index].indexed_distance > 0 and
-		lap_data.car_data[0].indexed_distance > lap_data.car_data[half_data_index].indexed_distance
-		or lap_data.car_data[half_data_index].indexed_distance == 0 and
-		lap_data.car_data[0].lap_distance > lap_data.car_data[half_data_index].lap_distance
-	):
-		lap_data.car_data[0].lap_distance = 0
-		lap_data.car_data[0].indexed_distance = 0
 
 
 func save_outgauge_packet(packet: OutGaugePacket) -> void:
