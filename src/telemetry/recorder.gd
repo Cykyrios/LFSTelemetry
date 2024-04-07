@@ -86,6 +86,21 @@ func remove_excess_data(lap_data: LapData) -> void:
 		lap_data.car_data.pop_back()
 
 
+func save_lap(packet: InSimLAPPacket) -> void:
+	if not recording or packet.player_id != player_id:
+		return
+	current_lap.lap_number = packet.laps_done
+	current_lap.lap_time = packet.lap_time / 1000.0
+	current_lap.total_time = packet.elapsed_time / 1000.0
+	var split_packet := InSimSPXPacket.new()
+	split_packet.player_id = packet.player_id
+	split_packet.split = 0 if current_lap.sectors.is_empty() or current_lap.sectors[-1].sector_number == 0 \
+			else current_lap.sectors[-1].sector_number + 1
+	split_packet.split_time = packet.lap_time
+	split_packet.elapsed_time = packet.elapsed_time
+	save_sector(split_packet)
+
+
 func save_outgauge_packet(packet: OutGaugePacket) -> void:
 	if not current_lap:
 		return
@@ -110,21 +125,6 @@ func save_sector(packet: InSimSPXPacket) -> void:
 	sector_data.sector_time = sector_time
 	sector_data.total_time = packet.elapsed_time / 1000.0
 	current_lap.sectors.append(sector_data)
-
-
-func save_lap(packet: InSimLAPPacket) -> void:
-	if not recording or packet.player_id != player_id:
-		return
-	current_lap.lap_number = packet.laps_done
-	current_lap.lap_time = packet.lap_time / 1000.0
-	current_lap.total_time = packet.elapsed_time / 1000.0
-	var split_packet := InSimSPXPacket.new()
-	split_packet.player_id = packet.player_id
-	split_packet.split = 0 if current_lap.sectors.is_empty() or current_lap.sectors[-1].sector_number == 0 \
-			else current_lap.sectors[-1].sector_number + 1
-	split_packet.split_time = packet.lap_time
-	split_packet.elapsed_time = packet.elapsed_time
-	save_sector(split_packet)
 
 
 func start_recording() -> void:
