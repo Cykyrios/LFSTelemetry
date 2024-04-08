@@ -39,12 +39,12 @@ func connect_signals() -> void:
 	_discard = insim.connected.connect(_on_insim_connected)
 	_discard = insim.timeout.connect(_on_insim_timeout)
 	_discard = insim.isp_lap_received.connect(_on_lap_received)
-	_discard = insim.isp_spx_received.connect(_on_split_received)
+	_discard = insim.isp_npl_received.connect(_on_player_connection_received)
 	_discard = insim.isp_pla_received.connect(_on_pitlane_received)
 	_discard = insim.isp_rst_received.connect(_on_race_start_received)
+	_discard = insim.isp_spx_received.connect(_on_split_received)
 	_discard = insim.isp_sta_received.connect(_on_state_received)
 	_discard = insim.small_vta_received.connect(_on_small_vta_received)
-	_discard = insim.isp_npl_received.connect(_on_player_connection_received)
 
 	_discard = outgauge.packet_received.connect(_on_outgauge_packet_received)
 	_discard = outsim.packet_received.connect(_on_outsim_packet_received)
@@ -78,13 +78,14 @@ func _on_record_button_pressed() -> void:
 		recorder.start_recording()
 
 
+func _on_telemetry_ended() -> void:
+	record_button.text = "Start recording"
+
+
 func _on_telemetry_started() -> void:
 	record_button.text = "Stop recording"
 	insim.send_packet(InSimTinyPacket.new(1, InSim.Tiny.TINY_SST))
-
-
-func _on_telemetry_ended() -> void:
-	record_button.text = "Start recording"
+#endregion
 
 
 #region InSim/OutSim/OutGauge
@@ -116,12 +117,6 @@ func _on_outsim_packet_received(packet: OutSimPacket) -> void:
 	recorder.save_outsim_packet(packet)
 
 
-func _on_race_start_received(_packet: InSimRSTPacket) -> void:
-	if recorder.recording:
-		recorder.end_current_lap()
-	insim.send_packet(InSimTinyPacket.new(1, InSim.Tiny.TINY_SST))
-
-
 func _on_pitlane_received(packet: InSimPLAPacket) -> void:
 	if (
 		not recorder.current_lap
@@ -140,6 +135,12 @@ func _on_player_connection_received(packet: InSimNPLPacket) -> void:
 	recorder.player_name = packet.player_name
 	recorder.car = packet.car_name
 	EventBus.driver_updated.emit(recorder.player_name, recorder.car)
+
+
+func _on_race_start_received(_packet: InSimRSTPacket) -> void:
+	if recorder.recording:
+		recorder.end_current_lap()
+	insim.send_packet(InSimTinyPacket.new(1, InSim.Tiny.TINY_SST))
 
 
 func _on_small_vta_received(packet: InSimSmallPacket) -> void:
@@ -163,5 +164,4 @@ func _on_state_received(packet: InSimSTAPacket) -> void:
 		return
 	recorder.player_id = packet.view_player_id
 	insim.send_packet(InSimTinyPacket.new(1, InSim.Tiny.TINY_NPL))
-#endregion
 #endregion
