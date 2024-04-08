@@ -17,6 +17,8 @@ var car := ""
 
 
 func delete_previous_lap_data() -> void:
+	if current_lap.car_data.is_empty():
+		return
 	var half_data_index := int(current_lap.outsim_data.size() / 2.0)
 	var half_data_distance := current_lap.outsim_data[half_data_index].outsim_pack.current_lap_distance
 	var idx := 0
@@ -79,6 +81,8 @@ func process_lap_data(lap: LapData) -> void:
 
 
 func remove_excess_data(lap_data: LapData) -> void:
+	if lap_data.car_data.is_empty():
+		return
 	# Use 50% data point lap distance as reference for first point "overflow".
 	# This should work even with partial lap recordings.
 	var half_data_index := int(lap_data.car_data.size() / 2.0)
