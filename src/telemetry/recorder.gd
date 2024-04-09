@@ -71,7 +71,8 @@ func process_lap_data(lap: LapData) -> void:
 			lap_data.car_data[0].indexed_distance = 0
 		var file_name := "%s %s %s %s" % [track, car, lap_data.date,
 				Utils.get_lap_time_string(lap_data.lap_time)]
-		lap_data.save_to_file("user://tlm/%s/%s.tlm" % [session_dir, file_name])
+		var lap_io := LapDataIO.new()
+		lap_io.save_lap_file("user://tlm/%s/%s.tlm" % [session_dir, file_name], lap_data)
 		call_deferred("emit_signal", "lap_data_written")
 	var thread := Thread.new()
 	var _discard := thread.start(process_data_threaded.bind(lap))
