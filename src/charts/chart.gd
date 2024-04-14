@@ -61,7 +61,8 @@ func _draw() -> void:
 			for c in series.color_data.size():
 				normalized_color_data[c] = color_map.get_normalized_value(
 						series.color_data[c], series.color_min, series.color_max)
-			var colors := normalized_color_data.map(color_map.get_color)
+			var colors: Array[Color] = []
+			colors.assign(normalized_color_data.map(color_map.get_color))
 			match series.plot_type:
 				ChartData.PlotType.LINE:
 					draw_polyline_colors(points, colors, 1, true)
