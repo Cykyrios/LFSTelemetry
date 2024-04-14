@@ -46,7 +46,12 @@ func _draw() -> void:
 			series.color_data.is_empty() or
 			series.color_data.all(func(value: float) -> bool: return is_zero_approx(value))
 		):
-			draw_polyline(points, series_colors[i], 1, true)
+			match series.plot_type:
+				ChartData.PlotType.LINE:
+					draw_polyline(points, series_colors[i], 1, true)
+				ChartData.PlotType.SCATTER:
+					for j in point_count:
+						draw_arc(points[j], 4, 0, 2 * PI, 7, series_colors[i], 0.5, true)
 		else:
 			var color_map := series.color_map
 			if not color_map:
@@ -57,7 +62,12 @@ func _draw() -> void:
 				normalized_color_data[c] = color_map.get_normalized_value(
 						series.color_data[c], series.color_min, series.color_max)
 			var colors := normalized_color_data.map(color_map.get_color)
-			draw_polyline_colors(points, colors, 1, true)
+			match series.plot_type:
+				ChartData.PlotType.LINE:
+					draw_polyline_colors(points, colors, 1, true)
+				ChartData.PlotType.SCATTER:
+					for j in point_count:
+						draw_arc(points[j], 4, 0, 2 * PI, 7, colors[j], 0.5, true)
 
 
 func add_data(data_x: Array[float], data_y: Array[float]) -> void:
