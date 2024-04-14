@@ -42,33 +42,30 @@ func _draw() -> void:
 		for j in point_count:
 			points[j] = Vector2(remap(x_data[j], x_plot_min, x_plot_max, 0, size.x),
 					remap(y_data[j], y_plot_min, y_plot_max, size.y, 0))
+		var color_map: ColorMap = null
 		if (
 			series.color_data.is_empty() or
 			series.color_data.all(func(value: float) -> bool: return is_zero_approx(value))
 		):
-			match series.plot_type:
-				ChartData.PlotType.LINE:
-					draw_polyline(points, series_colors[i], 1, true)
-				ChartData.PlotType.SCATTER:
-					for j in point_count:
-						draw_arc(points[j], 4, 0, 2 * PI, 7, series_colors[i], 0.5, true)
+			color_map = ColorMap.create_from_color_samples([series_colors[i]], 1)
+			_discard = series.color_data.resize(series.y_data.size())
 		else:
-			var color_map := series.color_map
+			color_map = series.color_map
 			if not color_map:
 				color_map = ColorMapMagma.new()
-			var normalized_color_data: Array[float] = []
-			_discard = normalized_color_data.resize(series.color_data.size())
-			for c in series.color_data.size():
-				normalized_color_data[c] = color_map.get_normalized_value(
-						series.color_data[c], series.color_min, series.color_max)
-			var colors: Array[Color] = []
-			colors.assign(normalized_color_data.map(color_map.get_color))
-			match series.plot_type:
-				ChartData.PlotType.LINE:
-					draw_polyline_colors(points, colors, 1, true)
-				ChartData.PlotType.SCATTER:
-					for j in point_count:
-						draw_arc(points[j], 4, 0, 2 * PI, 7, colors[j], 0.5, true)
+		var normalized_color_data: Array[float] = []
+		_discard = normalized_color_data.resize(series.color_data.size())
+		for c in series.color_data.size():
+			normalized_color_data[c] = color_map.get_normalized_value(
+					series.color_data[c], series.color_min, series.color_max)
+		var colors: Array[Color] = []
+		colors.assign(normalized_color_data.map(color_map.get_color))
+		match series.plot_type:
+			ChartData.PlotType.LINE:
+				draw_polyline_colors(points, colors, 1, true)
+			ChartData.PlotType.SCATTER:
+				for j in point_count:
+					draw_arc(points[j], 4, 0, 2 * PI, 7, colors[j], 0.5, true)
 
 
 func add_data(data_x: Array[float], data_y: Array[float]) -> void:
