@@ -21,6 +21,24 @@ func _ready() -> void:
 
 
 func _draw() -> void:
+	_draw_background()
+	_draw_gridlines()
+	_draw_data()
+
+
+func add_data(data_x: Array[float], data_y: Array[float]) -> void:
+	chart_data.append(ChartData.new(data_x, data_y))
+
+
+func clear_chart() -> void:
+	chart_data.clear()
+
+
+func _draw_background() -> void:
+	draw_rect(Rect2(0, 0, size.x, size.y), Color(0.2, 0.2, 0.2, 1))
+
+
+func _draw_data() -> void:
 	for i in chart_data.size():
 		var series := chart_data[i]
 		var x_data := series.x_data
@@ -68,10 +86,28 @@ func _draw() -> void:
 					draw_arc(points[j], 4, 0, 2 * PI, 7, colors[j], 0.5, true)
 
 
-func add_data(data_x: Array[float], data_y: Array[float]) -> void:
-	chart_data.append(ChartData.new(data_x, data_y))
-
-
-func clear_chart() -> void:
-	chart_data.clear()
-
+func _draw_gridlines() -> void:
+	var vertical_lines := 6
+	var vertical_sublines := 2
+	var horizontal_lines := 3
+	var horizontal_sublines := 1
+	var main_color := Color(0.5, 0.5, 0.5, 1)
+	var sub_color := Color(0.5, 0.5, 0.5, 0.3)
+	for i in vertical_lines:
+		var line_pos_x := size.x * (x_margin + i / (vertical_lines as float - 1) * (1 - 2 * x_margin))
+		draw_line( Vector2(line_pos_x, 0), Vector2(line_pos_x, size.y), main_color)
+		if i == vertical_lines - 1:
+			break
+		var main_interval := size.x * (1 - 2 * x_margin) / (vertical_lines as float - 1)
+		for j in vertical_sublines:
+			var subline_pos_x := line_pos_x + main_interval * (j + 1) / (vertical_sublines as float + 1)
+			draw_line( Vector2(subline_pos_x, 0), Vector2(subline_pos_x, size.y), sub_color)
+	for i in horizontal_lines:
+		var line_pos_y := size.y * (y_margin + i / (horizontal_lines as float - 1) * (1 - 2 * y_margin))
+		draw_line( Vector2(0, line_pos_y), Vector2(size.x, line_pos_y), main_color)
+		if i == horizontal_lines - 1:
+			break
+		var main_interval := size.y * (1 - 2 * y_margin) / (horizontal_lines as float - 1)
+		for j in horizontal_sublines:
+			var subline_pos_y := line_pos_y + main_interval * (j + 1) / (horizontal_sublines as float + 1)
+			draw_line( Vector2(0, subline_pos_y), Vector2(size.x, subline_pos_y), sub_color)
