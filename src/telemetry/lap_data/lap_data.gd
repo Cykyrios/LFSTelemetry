@@ -45,7 +45,6 @@ func fill_car_data() -> void:
 	for i in data_point_count:
 		var new_car_data := CarData.new()
 		var outgauge_packet := outgauge_data[i]
-		new_car_data._session_time = outgauge_packet.time
 		new_car_data.timestamp = outgauge_packet.time
 		new_car_data.time = (outgauge_packet.time - first_time_stamp) / 1000.0
 		var dash_lights := outgauge_packet.get_lights_array(outgauge_packet.show_lights)
