@@ -4,6 +4,7 @@ extends RefCounted
 
 const GRAVITY := 9.81
 
+var timestamp := 0
 var time := 0.0
 
 var position := Vector3.ZERO

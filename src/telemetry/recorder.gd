@@ -19,22 +19,17 @@ var car := ""
 func delete_previous_lap_data() -> void:
 	if current_lap.car_data.is_empty():
 		return
-	var half_data_index := int(current_lap.outsim_data.size() / 2.0)
-	var half_data_distance := current_lap.outsim_data[half_data_index].outsim_pack.current_lap_distance
-	var idx := 0
-	while current_lap.outsim_data[-1 - idx].outsim_pack.current_lap_distance < half_data_distance:
-		idx += 1
-	var outsim_size := current_lap.outsim_data.size() - idx
-	var outsim_time := current_lap.outsim_data[-1 - idx].outsim_pack.time
-	var outgauge_size := current_lap.outgauge_data.size()
-	for i in outgauge_size:
-		if current_lap.outgauge_data[-1 - i].time == outsim_time:
-			outgauge_size -= i
+	var last_timestamp := current_lap.car_data[-1].timestamp
+	var size := current_lap.outsim_data.size()
+	for i in size:
+		if current_lap.outsim_data[-1 - i].outsim_pack.time <= last_timestamp:
+			current_lap.outsim_data = current_lap.outsim_data.slice(size - i)
 			break
-	if not current_lap.outgauge_data.is_empty():
-		current_lap.outgauge_data = current_lap.outgauge_data.slice(outgauge_size)
-	if not current_lap.outsim_data.is_empty():
-		current_lap.outsim_data = current_lap.outsim_data.slice(outsim_size)
+	size = current_lap.outgauge_data.size()
+	for i in size:
+		if current_lap.outgauge_data[-1 - i].time <= last_timestamp:
+			current_lap.outgauge_data = current_lap.outgauge_data.slice(size - i)
+			break
 	current_lap.car_data.clear()
 	current_lap.date = ""
 	current_lap.lap_number = 0
@@ -84,13 +79,14 @@ func process_lap_data(lap: LapData) -> void:
 func remove_excess_data(lap_data: LapData) -> void:
 	if lap_data.car_data.is_empty():
 		return
-	# Use 50% data point lap distance as reference for first point "overflow".
-	# This should work even with partial lap recordings.
-	var half_data_index := int(lap_data.car_data.size() / 2.0)
-	while lap_data.car_data[0].lap_distance > lap_data.car_data[half_data_index].lap_distance:
-		lap_data.car_data.pop_front()
-	while lap_data.car_data[-1].lap_distance < lap_data.car_data[half_data_index].lap_distance:
-		lap_data.car_data.pop_back()
+	var car_data := lap_data.car_data
+	for i in car_data.size() - 1:
+		if (
+			car_data[-1 - i].lap_distance < car_data[-2 - i].lap_distance
+			or car_data[-1 - i].lap_distance == 0 and car_data[-2 - i].lap_distance == 0
+		):
+			var _discard := lap_data.car_data.resize(car_data.size() - i - 1)
+			break
 
 
 func save_lap(packet: InSimLAPPacket) -> void:
