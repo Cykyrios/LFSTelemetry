@@ -23,12 +23,12 @@ func delete_previous_lap_data() -> void:
 	var size := current_lap.outsim_data.size()
 	for i in size:
 		if current_lap.outsim_data[-1 - i].outsim_pack.time <= last_timestamp:
-			current_lap.outsim_data = current_lap.outsim_data.slice(size - i)
+			current_lap.outsim_data = current_lap.outsim_data.slice(size - i - 1)
 			break
 	size = current_lap.outgauge_data.size()
 	for i in size:
 		if current_lap.outgauge_data[-1 - i].time <= last_timestamp:
-			current_lap.outgauge_data = current_lap.outgauge_data.slice(size - i)
+			current_lap.outgauge_data = current_lap.outgauge_data.slice(size - i - 1)
 			break
 	current_lap.car_data.clear()
 	current_lap.date = ""
