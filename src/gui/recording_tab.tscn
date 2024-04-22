@@ -1,0 +1,232 @@
+[gd_scene load_steps=3 format=3 uid="uid://c3euu00cttsnk"]
+
+[ext_resource type="Script" path="res://src/gui/recording_tab.gd" id="1_2ebn4"]
+
+[sub_resource type="SystemFont" id="SystemFont_em00h"]
+font_names = PackedStringArray("Monospace")
+subpixel_positioning = 0
+
+[node name="RecordingTab" type="MarginContainer"]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/margin_left = 20
+theme_override_constants/margin_top = 20
+theme_override_constants/margin_right = 20
+theme_override_constants/margin_bottom = 20
+script = ExtResource("1_2ebn4")
+
+[node name="VBoxContainer" type="VBoxContainer" parent="."]
+layout_mode = 2
+size_flags_horizontal = 4
+size_flags_vertical = 4
+theme_override_constants/separation = 50
+
+[node name="ConnectionVBox" type="VBoxContainer" parent="VBoxContainer"]
+layout_mode = 2
+
+[node name="ConnectionLabel" type="Label" parent="VBoxContainer/ConnectionVBox"]
+layout_mode = 2
+text = "InSim & OutSim"
+horizontal_alignment = 1
+
+[node name="HelpButton" type="Button" parent="VBoxContainer/ConnectionVBox"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Help"
+
+[node name="HelpPopup" type="PopupPanel" parent="VBoxContainer/ConnectionVBox"]
+unique_name_in_owner = true
+size = Vector2i(668, 363)
+
+[node name="MarginContainer" type="MarginContainer" parent="VBoxContainer/ConnectionVBox/HelpPopup"]
+offset_left = 4.0
+offset_top = 4.0
+offset_right = 664.0
+offset_bottom = 359.0
+theme_override_constants/margin_left = 10
+theme_override_constants/margin_top = 10
+theme_override_constants/margin_right = 10
+theme_override_constants/margin_bottom = 10
+
+[node name="VBoxContainer" type="VBoxContainer" parent="VBoxContainer/ConnectionVBox/HelpPopup/MarginContainer"]
+layout_mode = 2
+
+[node name="RichTextLabel" type="RichTextLabel" parent="VBoxContainer/ConnectionVBox/HelpPopup/MarginContainer/VBoxContainer"]
+custom_minimum_size = Vector2(640, 300)
+layout_mode = 2
+theme_override_fonts/mono_font = SubResource("SystemFont_em00h")
+bbcode_enabled = true
+text = "Telemetry is recorded through a combination of InSim, OutSim and OutGauge.
+Default options still require you to set up the following:
+[ul]
+open a port for InSim connection (type [color=ffcc33][code]/insim 29999[/code][/color] in LFS or add this line in the startup script);
+set the OutGauge and OutSim options in the cfg.txt file (refer to the corresponding sections at the end of docs/InSim.txt for details).
+[/ul]
+
+Recommended defaults are IP 127.0.0.1 and ports 29999, 29998 and 29997 for InSim, OutGauge and OutSim respectively. Mode should be set to 2 to allow recording replays.
+Delay should be set to 1 to allow packets every 0.01s.
+OutSim Options default to [color=ffcc33][code]1ff[/code][/color]."
+
+[node name="CloseHelpButton" type="Button" parent="VBoxContainer/ConnectionVBox/HelpPopup/MarginContainer/VBoxContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Close"
+
+[node name="GridContainer" type="GridContainer" parent="VBoxContainer/ConnectionVBox"]
+layout_mode = 2
+columns = 3
+
+[node name="InSimLabel" type="Label" parent="VBoxContainer/ConnectionVBox/GridContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "InSim:"
+
+[node name="InSimAddress" type="LineEdit" parent="VBoxContainer/ConnectionVBox/GridContainer"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(100, 0)
+layout_mode = 2
+size_flags_horizontal = 6
+size_flags_stretch_ratio = 2.0
+tooltip_text = "Please refer to the OutSim section of docs/InSim.txt
+as well as docs/OutSimPack.txt.
+This should generally be left as 1ff (or empty)."
+placeholder_text = "127.0.0.1"
+alignment = 1
+
+[node name="InSimPort" type="LineEdit" parent="VBoxContainer/ConnectionVBox/GridContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 4
+tooltip_text = "Please refer to the OutSim section of docs/InSim.txt
+as well as docs/OutSimPack.txt.
+This should generally be left as 1ff (or empty)."
+placeholder_text = "29999"
+alignment = 1
+max_length = 5
+
+[node name="OutGaugeLabel" type="Label" parent="VBoxContainer/ConnectionVBox/GridContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "OutGauge:"
+
+[node name="OutGaugeAddress" type="LineEdit" parent="VBoxContainer/ConnectionVBox/GridContainer"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(100, 0)
+layout_mode = 2
+size_flags_horizontal = 6
+size_flags_stretch_ratio = 2.0
+tooltip_text = "Please refer to the OutSim section of docs/InSim.txt
+as well as docs/OutSimPack.txt.
+This should generally be left as 1ff (or empty)."
+placeholder_text = "127.0.0.1"
+alignment = 1
+
+[node name="OutGaugePort" type="LineEdit" parent="VBoxContainer/ConnectionVBox/GridContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 4
+tooltip_text = "Please refer to the OutSim section of docs/InSim.txt
+as well as docs/OutSimPack.txt.
+This should generally be left as 1ff (or empty)."
+placeholder_text = "29998"
+alignment = 1
+max_length = 5
+
+[node name="OutSimLabel" type="Label" parent="VBoxContainer/ConnectionVBox/GridContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "OutSim:"
+
+[node name="OutSimAddress" type="LineEdit" parent="VBoxContainer/ConnectionVBox/GridContainer"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(100, 0)
+layout_mode = 2
+size_flags_horizontal = 6
+size_flags_stretch_ratio = 2.0
+tooltip_text = "Please refer to the OutSim section of docs/InSim.txt
+as well as docs/OutSimPack.txt.
+This should generally be left as 1ff (or empty)."
+placeholder_text = "127.0.0.1"
+alignment = 1
+
+[node name="OutSimPort" type="LineEdit" parent="VBoxContainer/ConnectionVBox/GridContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 4
+tooltip_text = "Please refer to the OutSim section of docs/InSim.txt
+as well as docs/OutSimPack.txt.
+This should generally be left as 1ff (or empty)."
+placeholder_text = "29997"
+alignment = 1
+max_length = 5
+
+[node name="OutSimOptionsHBox" type="HBoxContainer" parent="VBoxContainer/ConnectionVBox"]
+layout_mode = 2
+
+[node name="OutSimLabel" type="Label" parent="VBoxContainer/ConnectionVBox/OutSimOptionsHBox"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "OutSim options:"
+
+[node name="OutSimOptions" type="LineEdit" parent="VBoxContainer/ConnectionVBox/OutSimOptionsHBox"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 4
+tooltip_text = "Please refer to the OutSim section of docs/InSim.txt
+as well as docs/OutSimPack.txt.
+This should generally be left as 1ff (or empty)."
+placeholder_text = "1ff"
+alignment = 1
+max_length = 4
+
+[node name="InSimButton" type="Button" parent="VBoxContainer/ConnectionVBox"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Connect to InSim"
+
+[node name="ConnectionStatusLabel" type="RichTextLabel" parent="VBoxContainer/ConnectionVBox"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(100, 10)
+layout_mode = 2
+size_flags_horizontal = 4
+bbcode_enabled = true
+text = "Status: [color=ff0000]Disconnected[/color]"
+fit_content = true
+scroll_active = false
+autowrap_mode = 0
+
+[node name="RecordingVBox" type="VBoxContainer" parent="VBoxContainer"]
+layout_mode = 2
+
+[node name="RecordingLabel" type="Label" parent="VBoxContainer/RecordingVBox"]
+layout_mode = 2
+text = "Recording"
+horizontal_alignment = 1
+
+[node name="DriverButton" type="Button" parent="VBoxContainer/RecordingVBox"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 4
+size_flags_vertical = 4
+text = "Refresh target driver"
+
+[node name="DriverLabel" type="RichTextLabel" parent="VBoxContainer/RecordingVBox"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(100, 10)
+layout_mode = 2
+size_flags_horizontal = 4
+bbcode_enabled = true
+text = "Driver: "
+fit_content = true
+scroll_active = false
+autowrap_mode = 0
+
+[node name="RecordButton" type="Button" parent="VBoxContainer/RecordingVBox"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 4
+size_flags_vertical = 4
+text = "Start recording"
