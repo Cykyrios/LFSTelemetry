@@ -7,12 +7,25 @@ var insim := InSim.new()
 var outgauge := OutGauge.new()
 var outsim := OutSim.new()
 
-var outsim_options := 0x1ff
-
 var recorder := Recorder.new()
 
+@onready var help_button := %HelpButton as Button
+@onready var help_popup := %HelpPopup as PopupPanel
+@onready var close_help_button := %CloseHelpButton as Button
+
+@onready var insim_address := %InSimAddress as LineEdit
+@onready var insim_port := %InSimPort as LineEdit
+@onready var outgauge_address := %OutGaugeAddress as LineEdit
+@onready var outgauge_port := %OutGaugePort as LineEdit
+@onready var outsim_address := %OutSimAddress as LineEdit
+@onready var outsim_port := %OutSimPort as LineEdit
+@onready var outsim_options := %OutSimOptions as LineEdit
+@onready var insim_button := %InSimButton as Button
+@onready var insim_status := %ConnectionStatusLabel as RichTextLabel
+
+@onready var driver_button := %DriverButton as Button
+@onready var driver_label := %DriverLabel as RichTextLabel
 @onready var record_button := %RecordButton as Button
-@onready var target_label := %TargetLabel as RichTextLabel
 
 
 func _ready() -> void:
@@ -20,19 +33,19 @@ func _ready() -> void:
 	add_child(insim)
 	add_child(outgauge)
 	add_child(outsim)
-	initialize_insim()
-	initialize_outgauge()
-	initialize_outsim()
-	print_laps()
-	if load_lap_file:
-		load_and_draw()
 
 
 func _exit_tree() -> void:
+	close_telemetry()
+
+
+func close_telemetry() -> void:
+	if recorder.recording:
+		recorder.stop_recording()
 	insim.close()
 	outgauge.close()
 	outsim.close()
-
+	insim_button.text = "Connect to InSim"
 
 
 func load_and_draw() -> void:
@@ -146,7 +159,12 @@ func load_and_draw() -> void:
 
 
 func connect_signals() -> void:
-	var _discard := record_button.pressed.connect(_on_record_button_pressed)
+	var _discard := help_button.pressed.connect(show_help)
+	_discard = close_help_button.pressed.connect(hide_help)
+	_discard = insim_button.pressed.connect(_on_insim_button_pressed)
+
+	_discard = driver_button.pressed.connect(_on_refresh_target_driver_pressed)
+	_discard = record_button.pressed.connect(_on_record_button_pressed)
 	_discard = EventBus.telemetry_started.connect(_on_telemetry_started)
 	_discard = EventBus.telemetry_ended.connect(_on_telemetry_ended)
 	_discard = EventBus.driver_updated.connect(_on_driver_updated)
@@ -165,32 +183,65 @@ func connect_signals() -> void:
 	_discard = outsim.packet_received.connect(_on_outsim_packet_received)
 
 
-func initialize_insim() -> void:
+func hide_help() -> void:
+	help_popup.hide()
+
+
+func initialize_insim(address := "127.0.0.1", port := 29_999) -> void:
 	var initialization_data := InSimInitializationData.new()
 	initialization_data.i_name = "GIS Telemetry"
 	initialization_data.flags |= InSim.InitFlag.ISF_LOCAL | InSim.InitFlag.ISF_MSO_COLS \
 			| InSim.InitFlag.ISF_CON | InSim.InitFlag.ISF_OBH | InSim.InitFlag.ISF_HLV
-	insim.initialize("127.0.0.1", 29_999, initialization_data, false, false)
+	insim.initialize(address, port, initialization_data, false, false)
 
 
-func initialize_outgauge() -> void:
-	outgauge.initialize()
+func initialize_outgauge(address := "127.0.0.1", port := 29_998) -> void:
+	outgauge.initialize(address, port)
 
 
-func initialize_outsim() -> void:
-	outsim.initialize(outsim_options)
+func initialize_outsim(options: int, address := "127.0.0.1", port := 29_997) -> void:
+	outsim.initialize(options, address, port)
+
+
+func initialize_telemetry() -> void:
+	initialize_insim()
+	initialize_outgauge()
+	var outsim_options_value := 0x1ff
+	var line_edit_hex_value := outsim_options.text.strip_edges().hex_to_int()
+	if outsim_options.text != "" and (outsim_options.text == "0" or line_edit_hex_value != 0):
+		outsim_options_value = line_edit_hex_value
+	initialize_outsim(outsim_options_value)
+
+
+func show_help() -> void:
+	help_popup.popup_centered()
 
 
 #region callbacks
+func _on_insim_button_pressed() -> void:
+	if insim.insim_connected:
+		close_telemetry()
+		insim_status.text = "Status: [color=ff0000]Disconnected[/color]"
+	else:
+		initialize_telemetry()
+
+
 func _on_driver_updated(driver_name: String, car: String) -> void:
-	target_label.text = "Target: %s (%s)" % [LFSText.lfs_colors_to_bbcode(driver_name), car]
+	driver_label.text = "Target: %s (%s)" % [LFSText.lfs_colors_to_bbcode(driver_name), car]
 
 
 func _on_record_button_pressed() -> void:
+	if not insim.insim_connected:
+		return
 	if recorder.recording:
 		recorder.stop_recording()
 	else:
 		recorder.start_recording()
+
+
+func _on_refresh_target_driver_pressed() -> void:
+	pass
+	insim.send_packet(InSimTinyPacket.new(1, InSim.Tiny.TINY_SST))
 
 
 func _on_telemetry_ended() -> void:
@@ -205,6 +256,8 @@ func _on_telemetry_started() -> void:
 
 #region InSim/OutSim/OutGauge
 func _on_insim_connected() -> void:
+	insim_status.text = "Status: [color=00ff00]Connected[/color]"
+	insim_button.text = "Disonnect from InSim"
 	await insim.isp_ver_received
 	insim.send_packet(InSimTinyPacket.new(1, InSim.Tiny.TINY_SST))
 
@@ -212,6 +265,8 @@ func _on_insim_connected() -> void:
 func _on_insim_timeout() -> void:
 	if recorder.recording:
 		recorder.stop_recording()
+	close_telemetry()
+	insim_status.text = "Status: [color=ff0000]Timed out[/color]"
 
 
 func _on_lap_received(packet: InSimLAPPacket) -> void:
@@ -261,8 +316,10 @@ func _on_race_start_received(_packet: InSimRSTPacket) -> void:
 func _on_small_vta_received(packet: InSimSmallPacket) -> void:
 	if not (recorder.recording):
 		return
-	if packet.value in [InSim.Vote.VOTE_END, InSim.Vote.VOTE_RESTART, InSim.Vote.VOTE_QUALIFY]:
+	if packet.value in [InSim.Vote.VOTE_RESTART, InSim.Vote.VOTE_QUALIFY]:
 		recorder.end_current_lap()
+	elif packet.value == InSim.Vote.VOTE_END:
+		recorder.stop_recording()
 
 
 func _on_split_received(packet: InSimSPXPacket) -> void:
