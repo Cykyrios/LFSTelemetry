@@ -4,16 +4,14 @@ extends Control
 
 var chart_data: Array[ChartData] = []
 
+var x_margin := 0.02
+var y_margin := 0.02
 var x_plot_min := INF
 var x_plot_max := -INF
 var y_plot_min := INF
 var y_plot_max := -INF
 
-var series_colors: Array[Color] = [
-	Color(1, 0.2, 0.2),
-	Color(0.2, 1, 0.2),
-	Color(0.4, 0.4, 1),
-]
+var series_colors := ColorMapD3Category10.new().colors
 
 
 func _ready() -> void:
@@ -32,6 +30,39 @@ func add_data(data_x: Array[float], data_y: Array[float]) -> void:
 
 func clear_chart() -> void:
 	chart_data.clear()
+
+
+func get_max_x() -> float:
+	var max_x := -INF
+	for data in chart_data:
+		max_x = maxf(max_x, data.x_data.max() as float)
+	return max_x
+
+
+func get_max_y() -> float:
+	var max_y := -INF
+	for data in chart_data:
+		max_y = maxf(max_y, data.y_data.max() as float)
+	return max_y
+
+
+func get_min_x() -> float:
+	var min_x := INF
+	for data in chart_data:
+		min_x = minf(min_x, data.x_data.min() as float)
+	return min_x
+
+
+func get_min_y() -> float:
+	var min_y := INF
+	for data in chart_data:
+		min_y = minf(min_y, data.y_data.min() as float)
+	return min_y
+
+
+func set_chart_data_color(data: ChartData, color: Color) -> void:
+	var _discard := data.color_data.resize(data.y_data.size())
+	data.color_map = ColorMap.create_from_color_samples([color], 1)
 
 
 func _draw_background() -> void:
@@ -57,13 +88,18 @@ func _draw_data() -> void:
 			y_plot_min -= 1
 			y_plot_max += 1
 			y_range = y_plot_max - y_plot_min
+		var x_plot_margin := x_range * x_margin
+		var y_plot_margin := y_range * y_margin
 		for j in point_count:
-			points[j] = Vector2(remap(x_data[j], x_plot_min, x_plot_max, 0, size.x),
-					remap(y_data[j], y_plot_min, y_plot_max, size.y, 0))
+			points[j] = Vector2(
+				remap(x_data[j], x_plot_min - x_plot_margin, x_plot_max + x_plot_margin, 0, size.x),
+				remap(y_data[j], y_plot_min - y_plot_margin, y_plot_max + y_plot_margin, size.y, 0)
+			)
 		var color_map: ColorMap = null
 		if (
-			series.color_data.is_empty() or
-			series.color_data.all(func(value: float) -> bool: return is_zero_approx(value))
+			not series.color_map and
+			(series.color_data.is_empty() or
+			series.color_data.all(func(value: float) -> bool: return is_zero_approx(value)))
 		):
 			color_map = ColorMap.create_from_color_samples([series_colors[i]], 1)
 			_discard = series.color_data.resize(series.y_data.size())
