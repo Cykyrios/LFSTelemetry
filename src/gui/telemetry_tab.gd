@@ -75,7 +75,7 @@ func draw_charts() -> void:
 		chart_steer.set_chart_data_color(chart_steer.chart_data[-1], Color.RED.lightened(0.25))
 	chart_steer.x_plot_min = xmin
 	chart_steer.x_plot_max = xmax
-	var steering_abs := maxf(chart_steer.get_min_y(), chart_steer.get_max_y())
+	var steering_abs := maxf(absf(chart_steer.get_min_y()), absf(chart_steer.get_max_y()))
 	chart_steer.y_plot_min = -steering_abs
 	chart_steer.y_plot_max = steering_abs
 	if reference_lap:
