@@ -133,8 +133,20 @@ func draw_charts() -> void:
 		var _discard := power_data.resize(rpm_data.size())
 		for i in power_data.size():
 			power_data[i] = rpm_data[i] * torque_data[i] * 2 * PI / 60 / 1000
-		power_chart.add_data(rpm_data, torque_data, "Torque [N.m]")
-		power_chart.add_data(rpm_data, power_data, "Power [kW]")
+		var rpm_power_torque := []
+		_discard = rpm_power_torque.resize(rpm_data.size())
+		for i in rpm_data.size():
+			rpm_power_torque[i] = [rpm_data[i], power_data[i], torque_data[i]]
+		rpm_power_torque.sort_custom(func(a: Array, b: Array) -> bool: return a[0] < b[0])
+		var rpms: Array[float] = []
+		_discard = rpms.resize(rpm_data.size())
+		rpms.assign(rpm_power_torque.map(func(value: Array) -> float: return value[0]))
+		var powers: Array[float] = []
+		powers.assign(rpm_power_torque.map(func(value: Array) -> float: return value[1]))
+		var torques: Array[float] = []
+		torques.assign(rpm_power_torque.map(func(value: Array) -> float: return value[2]))
+		power_chart.add_data(rpms, torques, "Torque [N.m]")
+		power_chart.add_data(rpms, powers, "Power [kW]")
 		power_chart.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN
 		power_chart.queue_redraw()
 	await get_tree().process_frame
