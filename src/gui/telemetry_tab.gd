@@ -229,7 +229,6 @@ func load_lap() -> LapData:
 	await file_dialog.file_selected
 	var path := file_dialog.current_path
 	var lap_io := LapDataIO.new()
-	#load_and_draw(path)
 	return lap_io.load_lap_file(path)
 
 
