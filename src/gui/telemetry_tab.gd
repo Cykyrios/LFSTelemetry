@@ -35,10 +35,10 @@ func draw_charts() -> void:
 	chart_speed.custom_minimum_size = Vector2(400, 200)
 	var chart_steer := Chart.new()
 	vbox.add_child(chart_steer)
-	chart_steer.custom_minimum_size = Vector2(400, 200)
+	chart_steer.custom_minimum_size = Vector2(400, 100)
 	var chart_rpm := Chart.new()
 	vbox.add_child(chart_rpm)
-	chart_rpm.custom_minimum_size = Vector2(400, 200)
+	chart_rpm.custom_minimum_size = Vector2(400, 100)
 	var chart_gear := Chart.new()
 	vbox.add_child(chart_gear)
 	chart_gear.custom_minimum_size = Vector2(400, 100)
@@ -58,7 +58,7 @@ func draw_charts() -> void:
 	if main_lap:
 		chart_speed.add_data(get_data(main_lap, "auto_distance") as Array[float],
 				get_data(main_lap, "speed") as Array[float], "Speed [km/h]")
-		chart_speed.set_chart_data_color(chart_speed.chart_data[-1], Color.RED.lightened(0.25))
+		chart_speed.set_chart_data_color(chart_speed.chart_data[-1], Color.LIGHT_GREEN)
 	if reference_lap:
 		chart_steer.add_data(get_data(reference_lap, "auto_distance") as Array[float],
 				get_data(reference_lap, "steer") as Array[float], "Reference")
@@ -66,7 +66,7 @@ func draw_charts() -> void:
 	if main_lap:
 		chart_steer.add_data(get_data(main_lap, "auto_distance") as Array[float],
 				get_data(main_lap, "steer") as Array[float], "Steering [°]")
-		chart_steer.set_chart_data_color(chart_steer.chart_data[-1], Color.RED.lightened(0.25))
+		chart_steer.set_chart_data_color(chart_steer.chart_data[-1], Color.DEEP_SKY_BLUE)
 	chart_steer.zero_centered = true
 	if reference_lap:
 		chart_rpm.add_data(get_data(reference_lap, "auto_distance") as Array[float],
@@ -75,6 +75,7 @@ func draw_charts() -> void:
 	if main_lap:
 		chart_rpm.add_data(get_data(main_lap, "auto_distance") as Array[float],
 				get_data(main_lap, "rpm") as Array[float], "RPM")
+		chart_rpm.set_chart_data_color(chart_rpm.chart_data[-1], Color.VIOLET)
 	if reference_lap:
 		chart_gear.add_data(get_data(reference_lap, "auto_distance") as Array[float],
 				get_data(reference_lap, "gear") as Array[float], "Reference")
@@ -82,12 +83,7 @@ func draw_charts() -> void:
 	if main_lap:
 		chart_gear.add_data(get_data(main_lap, "auto_distance") as Array[float],
 				get_data(main_lap, "gear") as Array[float], "Gear")
-	chart_rpm.chart_data[-1].color_data = chart_gear.chart_data[-1].y_data
-	chart_rpm.chart_data[-1].color_map = ColorMapTurbo.new()
-	chart_rpm.chart_data[-1].color_map.steps = int(chart_gear.y_plot_max - chart_gear.y_plot_min + 1)
-	chart_gear.chart_data[-1].color_data = chart_gear.chart_data[-1].y_data
-	chart_gear.chart_data[-1].color_map = ColorMapTurbo.new()
-	chart_gear.chart_data[-1].color_map.steps = int(chart_gear.y_plot_max - chart_gear.y_plot_min + 1)
+		chart_gear.set_chart_data_color(chart_gear.chart_data[-1], Color.GOLD)
 	if reference_lap:
 		chart_throttle.add_data(get_data(reference_lap, "auto_distance") as Array[float],
 				get_data(reference_lap, "throttle") as Array[float], "Reference")
@@ -95,7 +91,7 @@ func draw_charts() -> void:
 	if main_lap:
 		chart_throttle.add_data(get_data(main_lap, "auto_distance") as Array[float],
 				get_data(main_lap, "throttle") as Array[float], "Throttle [%]")
-		chart_throttle.set_chart_data_color(chart_throttle.chart_data[-1], Color.DARK_GREEN.lightened(0.25))
+		chart_throttle.set_chart_data_color(chart_throttle.chart_data[-1], Color.LIME_GREEN)
 	if reference_lap:
 		chart_brake.add_data(get_data(reference_lap, "auto_distance") as Array[float],
 				get_data(reference_lap, "brake") as Array[float], "Reference")
@@ -103,7 +99,7 @@ func draw_charts() -> void:
 	if main_lap:
 		chart_brake.add_data(get_data(main_lap, "auto_distance") as Array[float],
 				get_data(main_lap, "brake") as Array[float], "Brake [%]")
-		chart_brake.set_chart_data_color(chart_brake.chart_data[-1], Color.DARK_RED.lightened(0.25))
+		chart_brake.set_chart_data_color(chart_brake.chart_data[-1], Color.CRIMSON)
 	if reference_lap:
 		chart_path.add_data(get_data(reference_lap, "x_pos") as Array[float],
 				get_data(reference_lap, "y_pos") as Array[float], "Reference")
