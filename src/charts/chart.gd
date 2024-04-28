@@ -13,12 +13,16 @@ var y_plot_max := -INF
 
 var series_colors := ColorMapD3Category10.new().colors
 
+var equal_aspect := false
+var zero_centered := false
+
 
 func _ready() -> void:
 	pass
 
 
 func _draw() -> void:
+	_update_plot_extents()
 	_draw_background()
 	_draw_gridlines()
 	_draw_data()
@@ -78,18 +82,8 @@ func _draw_data() -> void:
 		var point_count := mini(x_data.size(), y_data.size())
 		var _discard := points.resize(point_count)
 
-		var x_range := x_plot_max - x_plot_min
-		var y_range := y_plot_max - y_plot_min
-		if is_zero_approx(x_range):
-			x_plot_min -= 1
-			x_plot_max += 1
-			x_range = x_plot_max - x_plot_min
-		if is_zero_approx(y_range):
-			y_plot_min -= 1
-			y_plot_max += 1
-			y_range = y_plot_max - y_plot_min
-		var x_plot_margin := x_range * x_margin
-		var y_plot_margin := y_range * y_margin
+		var x_plot_margin := (x_plot_max - x_plot_min) * x_margin
+		var y_plot_margin := (y_plot_max - y_plot_min) * y_margin
 		for j in point_count:
 			points[j] = Vector2(
 				remap(x_data[j], x_plot_min - x_plot_margin, x_plot_max + x_plot_margin, 0, size.x),
@@ -147,3 +141,37 @@ func _draw_gridlines() -> void:
 		for j in horizontal_sublines:
 			var subline_pos_y := line_pos_y + main_interval * (j + 1) / (horizontal_sublines as float + 1)
 			draw_line( Vector2(0, subline_pos_y), Vector2(size.x, subline_pos_y), sub_color)
+
+
+func _update_plot_extents() -> void:
+	var x_min := get_min_x()
+	var x_max := get_max_x()
+	var y_min := get_min_y()
+	var y_max := get_max_y()
+	var x_range := x_max - x_min
+	var y_range := y_max - y_min
+	if is_zero_approx(x_range):
+		x_min -= 1
+		x_max += 1
+	if is_zero_approx(y_range):
+		y_min -= 1
+		y_max += 1
+	if equal_aspect:
+		var chart_aspect := size.x / size.y
+		var bounded_range := x_range if x_range / size.x > y_range / size.y else y_range
+		var x_equal_range := bounded_range * (1.0 if bounded_range == x_range else chart_aspect)
+		var y_equal_range := bounded_range * (1.0 if bounded_range == y_range else 1 / chart_aspect)
+		x_plot_min = x_min - (x_equal_range - x_range) / 2.0
+		x_plot_max = x_max + (x_equal_range - x_range) / 2.0
+		y_plot_min = y_min - (y_equal_range - y_range) / 2.0
+		y_plot_max = y_max + (y_equal_range - y_range) / 2.0
+	else:
+		x_plot_max = x_max
+		x_plot_min = x_min
+		if zero_centered:
+			var y_abs := maxf(absf(y_max), absf(y_min))
+			y_plot_max = y_abs
+			y_plot_min = -y_abs
+		else:
+			y_plot_max = y_max
+			y_plot_min = y_min
