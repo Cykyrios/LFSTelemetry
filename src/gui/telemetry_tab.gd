@@ -149,6 +149,51 @@ func draw_charts() -> void:
 		power_chart.add_data(rpms, powers, "Power [kW]")
 		power_chart.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN
 		power_chart.queue_redraw()
+	if main_lap:
+		var rpm_hbox := HBoxContainer.new()
+		vbox.add_child(rpm_hbox)
+		var rpm_vbox_left := VBoxContainer.new()
+		rpm_hbox.add_child(rpm_vbox_left)
+		rpm_vbox_left.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		var rpm_vbox_right := VBoxContainer.new()
+		rpm_hbox.add_child(rpm_vbox_right)
+		rpm_vbox_right.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		rpm_vbox_right.size_flags_stretch_ratio = 2
+		var chart_rpm_g := Chart.new()
+		rpm_vbox_right.add_child(chart_rpm_g)
+		chart_rpm_g.custom_minimum_size = Vector2(400, 300)
+		var speed_data := get_data(main_lap, "speed") as Array[float]
+		var rpm_data := get_data(main_lap, "rpm") as Array[float]
+		var g_data := get_data(main_lap, "g_lon") as Array[float]
+		var throttle_data := get_data(main_lap, "throttle") as Array[float]
+		var gear_data := get_data(main_lap, "gear") as Array[float]
+		for i in throttle_data.size():
+			if throttle_data[i] < 0.5 or g_data[i] < 0.0:
+				speed_data[i] = INF
+				rpm_data[i] = INF
+				g_data[i] = INF
+				gear_data[i] = INF
+		var speed_filtered: Array[float] = []
+		var rpm_filtered: Array[float] = []
+		var g_filtered: Array[float] = []
+		var gear_filtered: Array[float] = []
+		speed_filtered.assign(speed_data.filter(func(value: float) -> bool: return not is_inf(value)))
+		rpm_filtered.assign(rpm_data.filter(func(value: float) -> bool: return not is_inf(value)))
+		g_filtered.assign(g_data.filter(func(value: float) -> bool: return not is_inf(value)))
+		gear_filtered.assign(gear_data.filter(func(value: float) -> bool: return not is_inf(value)))
+		chart_rpm_g.add_data(speed_filtered, rpm_filtered, "RPM vs Speed")
+		chart_rpm_g.chart_data[-1].plot_type = ChartData.PlotType.SCATTER
+		chart_rpm_g.chart_data[-1].color_data = gear_filtered
+		chart_rpm_g.chart_data[-1].color_map = ColorMapTurbo.new()
+		chart_rpm_g.queue_redraw()
+		var chart_glon := Chart.new()
+		rpm_vbox_right.add_child(chart_glon)
+		chart_glon.custom_minimum_size = Vector2(400, 300)
+		chart_glon.add_data(speed_filtered, g_filtered, "Lon. G vs Speed [G]")
+		chart_glon.chart_data[-1].plot_type = ChartData.PlotType.SCATTER
+		chart_glon.chart_data[-1].color_data = gear_filtered
+		chart_glon.chart_data[-1].color_map = ColorMapTurbo.new()
+		chart_glon.queue_redraw()
 	await get_tree().process_frame
 
 
@@ -188,6 +233,10 @@ func get_data(lap: LapData, data_type: String) -> Array[float]:
 			array.assign(lap.car_data.map(func(data: CarData) -> float: return data.brake))
 		"torque":
 			array.assign(lap.car_data.map(func(data: CarData) -> float: return data.max_torque_at_rpm))
+		"g_lon":
+			array.assign(lap.car_data.map(func(data: CarData) -> float: return data.g_forces.y))
+		"g_lat":
+			array.assign(lap.car_data.map(func(data: CarData) -> float: return data.g_forces.x))
 	return array
 
 
