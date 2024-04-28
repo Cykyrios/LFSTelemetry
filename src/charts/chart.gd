@@ -2,6 +2,8 @@ class_name Chart
 extends Control
 
 
+var font := preload("res://src/charts/RecursiveSansLnrSt-Regular.otf")
+
 var chart_data: Array[ChartData] = []
 
 var x_margin := 0.02
@@ -13,12 +15,17 @@ var y_plot_max := -INF
 
 var series_colors := ColorMapD3Category10.new().colors
 
+var title_offset := Vector2.ZERO
+var labels_width := 0.0
+
 var equal_aspect := false
 var zero_centered := false
 
 
 func _ready() -> void:
-	pass
+	var text := TextLine.new()
+	var _string := text.add_string("00000", font, 12)
+	labels_width = text.get_line_width()
 
 
 func _draw() -> void:
@@ -28,8 +35,10 @@ func _draw() -> void:
 	_draw_data()
 
 
-func add_data(data_x: Array[float], data_y: Array[float]) -> void:
-	chart_data.append(ChartData.new(data_x, data_y))
+func add_data(data_x: Array[float], data_y: Array[float], title := "") -> void:
+	if title == "":
+		title = "Series %d" % [chart_data.size() + 1]
+	chart_data.append(ChartData.new(data_x, data_y, title))
 
 
 func clear_chart() -> void:
@@ -74,6 +83,7 @@ func _draw_background() -> void:
 
 
 func _draw_data() -> void:
+	_reset_title_offset()
 	for i in chart_data.size():
 		var series := chart_data[i]
 		var x_data := series.x_data
@@ -108,6 +118,7 @@ func _draw_data() -> void:
 					series.color_data[c], series.color_min, series.color_max)
 		var colors: Array[Color] = []
 		colors.assign(normalized_color_data.map(color_map.get_color))
+		_draw_title(series, color_map)
 		match series.plot_type:
 			ChartData.PlotType.LINE:
 				draw_polyline_colors(points, colors, 1, true)
@@ -141,6 +152,26 @@ func _draw_gridlines() -> void:
 		for j in horizontal_sublines:
 			var subline_pos_y := line_pos_y + main_interval * (j + 1) / (horizontal_sublines as float + 1)
 			draw_line( Vector2(0, subline_pos_y), Vector2(size.x, subline_pos_y), sub_color)
+
+
+func _draw_title(series: ChartData, color_map: ColorMap) -> void:
+	if series.title == "Reference":
+		return
+	var text := TextLine.new()
+	var _string := text.add_string(series.title, font, 12)
+	var color := color_map.get_color(0)
+	if not series.color_data.is_empty() and series.color_data.max() > 0:
+		var min_color_value := series.color_data.min() as float
+		var max_color_value := series.color_data.max() as float
+		var mean_color_value := (min_color_value + max_color_value) / 2.0
+		color = color_map.get_color(color_map.get_normalized_value(
+				mean_color_value, min_color_value, max_color_value))
+	text.draw(get_canvas_item(), title_offset, color)
+	title_offset.y += text.get_line_ascent() + text.get_line_descent()
+
+
+func _reset_title_offset() -> void:
+	title_offset = Vector2(5, 2)
 
 
 func _update_plot_extents() -> void:

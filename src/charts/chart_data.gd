@@ -4,6 +4,7 @@ extends RefCounted
 
 enum PlotType {LINE, SCATTER}
 
+var title := ""
 var x_data: Array[float] = []:
 	set(value):
 		x_data = value
@@ -30,7 +31,7 @@ var color_min := 0.0
 var color_max := 0.0
 
 
-func _init(data_x: Array[float], data_y: Array[float], plot := PlotType.LINE) -> void:
+func _init(data_x: Array[float], data_y: Array[float], series_title := "New Series") -> void:
 	x_data = data_x
 	y_data = data_y
-	plot_type = plot
+	title = series_title
