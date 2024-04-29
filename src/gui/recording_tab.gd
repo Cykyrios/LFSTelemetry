@@ -1,6 +1,8 @@
 extends MarginContainer
 
 
+@export var load_lap_file := false
+
 var insim := InSim.new()
 var outgauge := OutGauge.new()
 var outsim := OutSim.new()
