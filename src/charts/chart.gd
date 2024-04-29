@@ -124,7 +124,7 @@ func _draw_data() -> void:
 				draw_polyline_colors(points, colors, 1, true)
 			ChartData.PlotType.SCATTER:
 				for j in point_count:
-					draw_arc(points[j], 4, 0, 2 * PI, 7, colors[j], 0.5, true)
+					draw_arc(points[j], 3, 0, 2 * PI, 9, colors[j], 0.5, true)
 
 
 func _draw_gridlines() -> void:
