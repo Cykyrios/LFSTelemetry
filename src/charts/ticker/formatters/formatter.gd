@@ -15,7 +15,7 @@ func format_ticks(values: Array[float]) -> Array[String]:
 	var labels: Array[String] = []
 	var _discard := labels.resize(locations.size())
 	for i in locations.size():
-		labels[i] = "%f" % [locations[i]]
+		labels[i] = format_data(values[i])
 	return labels
 
 

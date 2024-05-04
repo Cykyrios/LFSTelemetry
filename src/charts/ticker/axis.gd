@@ -20,16 +20,21 @@ var data_max := INF
 var view_min := -INF
 var view_max := INF
 
+var figure_size := 0.0
 var axis_padding := Vector2.ZERO
 
 
 func _init() -> void:
 	major_ticks = Ticker.new()
-	major_ticks.formatter = FormatterScalar.new()
+	var major_formatter := FormatterScalar.new()
+	major_formatter.scientific = false
+	major_ticks.formatter = major_formatter
 	major_ticks.locator = LocatorAuto.new()
 	major_ticks.set_axis(self)
 	minor_ticks = Ticker.new()
-	minor_ticks.formatter = FormatterScalar.new()
+	var minor_formatter := FormatterScalar.new()
+	minor_formatter.scientific = false
+	minor_ticks.formatter = minor_formatter
 	minor_ticks.locator = LocatorAuto.new()
 	minor_ticks.set_axis(self)
 
@@ -40,7 +45,7 @@ func _init() -> void:
 
 
 func get_tick_space() -> int:
-	return 42
+	return floori(figure_size / axis_padding.y * 2)
 
 
 func set_scale(new_scale: Scale) -> void:

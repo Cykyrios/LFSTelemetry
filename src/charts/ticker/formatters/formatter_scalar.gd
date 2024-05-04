@@ -14,7 +14,7 @@ func _format_data(value: float) -> String:
 
 
 func format_scalar(value: float) -> String:
-	if scientific and absf(value) >= scientific_low and absf(value) <= scientific_high:
+	if not scientific or absf(value) < scientific_low or absf(value) > scientific_high:
 		var string := "%f" % [value]
 		return trim_trailing_decimal_zeros(string)
 	var e := floori(log(absf(value)) / log(10))

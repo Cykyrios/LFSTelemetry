@@ -87,7 +87,7 @@ func _raw_ticks(vmin: float, vmax: float) -> Array[float]:
 		if is_equal_approx(m / step, 0):
 			return d + 1
 		return d
-	var istep := large_steps.find((large_steps.filter(func(value: float) -> bool:
+	var istep := _steps.find((large_steps.filter(func(value: float) -> bool:
 		return value > 0) as Array[float])[0])
 	var ticks: Array[float] = []
 	for i in range(istep, -1, -1):
