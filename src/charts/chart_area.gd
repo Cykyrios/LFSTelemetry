@@ -6,19 +6,9 @@ var font := preload("res://src/charts/RecursiveSansLnrSt-Regular.otf")
 
 var chart_data: Array[ChartData] = []
 
-var x_margin := 0.02
-var y_margin := 0.02
-var x_plot_min := INF
-var x_plot_max := -INF
-var y_plot_min := INF
-var y_plot_max := -INF
-
 var series_colors := ColorMapD3Category10.new().colors
 
 var title_offset := Vector2.ZERO
-
-var equal_aspect := false
-var zero_centered := false
 
 
 func _draw() -> void:
@@ -44,8 +34,6 @@ func _draw_data() -> void:
 		var point_count := mini(x_data.size(), y_data.size())
 		var _discard := points.resize(point_count)
 
-		var x_plot_margin := (x_plot_max - x_plot_min) * x_margin
-		var y_plot_margin := (y_plot_max - y_plot_min) * y_margin
 		if x_axis.major_ticks.locator is LocatorMaxN:
 			(x_axis.major_ticks.locator as LocatorMaxN).symmetric = x_axis.symmetric
 		if y_axis.major_ticks.locator is LocatorMaxN:

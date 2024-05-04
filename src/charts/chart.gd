@@ -2,6 +2,8 @@ class_name Chart
 extends GridContainer
 
 
+const AXIS_PADDING := Vector2(60, 25)
+
 var font := preload("res://src/charts/RecursiveSansLnrSt-Regular.otf")
 
 var chart_area := ChartArea.new()
@@ -35,10 +37,10 @@ func _ready() -> void:
 	add_child(corner_bottom_left)
 	add_child(edge_bottom)
 	add_child(corner_bottom_right)
-	edge_top.custom_minimum_size = Vector2(0, 30)
-	edge_left.custom_minimum_size = Vector2(50, 0)
-	edge_right.custom_minimum_size = Vector2(50, 0)
-	edge_bottom.custom_minimum_size = Vector2(0, 30)
+	edge_top.custom_minimum_size = AXIS_PADDING * Vector2(0, 1)
+	edge_left.custom_minimum_size = AXIS_PADDING * Vector2(1, 0)
+	edge_right.custom_minimum_size = AXIS_PADDING * Vector2(1, 0)
+	edge_bottom.custom_minimum_size = AXIS_PADDING * Vector2(0, 1)
 	chart_area.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	chart_area.size_flags_vertical = Control.SIZE_EXPAND_FILL
 
@@ -58,8 +60,10 @@ func _draw() -> void:
 		var x_axis := series.x_axis
 		var y_axis := series.y_axis
 		var offset := Vector2.ZERO
-		var tick_offset := 0
-		var alignment_factor := 0
+		var tick_offset := 3
+		var tick_size := 4
+		var direction := 1
+		var opposite_label := 0
 		var font_size := 12
 		if x_axes.find(x_axis) < 0:
 			x_axes.append(x_axis)
@@ -70,6 +74,7 @@ func _draw() -> void:
 				offset = edge_bottom.position
 			else:
 				offset = edge_top.position
+				direction = -1
 			for i in labels.size():
 				var axis_pos := remap(locations[i], x_axis.view_min, x_axis.view_max,
 						0, chart_area.size.x)
@@ -77,8 +82,14 @@ func _draw() -> void:
 					continue
 				var text := TextLine.new()
 				var _discard := text.add_string(labels[i], font, font_size)
-				var pos := Vector2(offset.x + axis_pos, offset.y + 5)
-				text.draw(get_canvas_item(), pos - Vector2(text.get_line_width() / 2, 0))
+				var pos := Vector2(offset.x + axis_pos, offset.y)
+				draw_line(pos, pos + Vector2(0, direction * tick_size), Color.WHITE)
+				var label_offset := pos + Vector2(
+					-text.get_line_width() / 2,
+					direction * (tick_size + tick_offset) - opposite_label * (
+							text.get_line_ascent() + text.get_line_descent())
+				)
+				text.draw(get_canvas_item(), label_offset)
 		if y_axes.find(y_axis) < 0:
 			y_axes.append(y_axis)
 			var locations := y_axis.major_ticks.locator.get_tick_locations()
@@ -86,11 +97,10 @@ func _draw() -> void:
 			var labels := y_axis.major_ticks.formatter.format_ticks(values)
 			if y_axis.position == Axis.Position.BOTTOM_LEFT:
 				offset = edge_left.position + edge_left.size * Vector2(1, 0)
-				alignment_factor = -1
-				tick_offset = -5
+				direction = -1
+				opposite_label = 1
 			else:
 				offset = edge_right.position
-				tick_offset = 5
 			for i in labels.size():
 				var axis_pos := remap(locations[i], y_axis.view_min, y_axis.view_max,
 						chart_area.size.y, 0)
@@ -99,8 +109,11 @@ func _draw() -> void:
 				var text := TextLine.new()
 				var _discard := text.add_string(labels[i], font, font_size)
 				var pos := Vector2(offset.x, offset.y + axis_pos)
-				var label_offset := Vector2(tick_offset + alignment_factor * text.get_line_width(),
-						-text.get_line_ascent() / 2)
+				draw_line(pos, pos + Vector2(direction * tick_size, 0), Color.WHITE)
+				var label_offset := Vector2(
+					direction * (tick_offset + tick_size) - opposite_label * text.get_line_width(),
+					-text.get_line_ascent() / 2
+				)
 				text.draw(get_canvas_item(), pos + label_offset)
 
 

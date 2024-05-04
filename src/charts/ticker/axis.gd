@@ -68,6 +68,9 @@ func set_view_limits(vmin := -INF, vmax := INF) -> void:
 func update_view_interval() -> void:
 	view_min = data_min
 	view_max = data_max
+	if is_equal_approx(view_min, view_max):
+		view_min -= 1
+		view_max += 1
 
 
 func _update_ticks() -> void:
