@@ -1,0 +1,2 @@
+class_name LocatorAuto
+extends LocatorMaxN

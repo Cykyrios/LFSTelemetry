@@ -32,25 +32,25 @@ func draw_charts() -> void:
 	scroll_container.add_child(vbox)
 	var chart_speed := Chart.new()
 	vbox.add_child(chart_speed)
-	chart_speed.custom_minimum_size = Vector2(400, 200)
+	chart_speed.chart_area.custom_minimum_size = Vector2(400, 200)
 	var chart_steer := Chart.new()
 	vbox.add_child(chart_steer)
-	chart_steer.custom_minimum_size = Vector2(400, 100)
+	chart_steer.chart_area.custom_minimum_size = Vector2(400, 100)
 	var chart_rpm := Chart.new()
 	vbox.add_child(chart_rpm)
-	chart_rpm.custom_minimum_size = Vector2(400, 100)
+	chart_rpm.chart_area.custom_minimum_size = Vector2(400, 100)
 	var chart_gear := Chart.new()
 	vbox.add_child(chart_gear)
-	chart_gear.custom_minimum_size = Vector2(400, 100)
+	chart_gear.chart_area.custom_minimum_size = Vector2(400, 100)
 	var chart_throttle := Chart.new()
 	vbox.add_child(chart_throttle)
-	chart_throttle.custom_minimum_size = Vector2(400, 100)
+	chart_throttle.chart_area.custom_minimum_size = Vector2(400, 100)
 	var chart_brake := Chart.new()
 	vbox.add_child(chart_brake)
-	chart_brake.custom_minimum_size = Vector2(400, 100)
+	chart_brake.chart_area.custom_minimum_size = Vector2(400, 100)
 	var chart_path := Chart.new()
 	vbox.add_child(chart_path)
-	chart_path.custom_minimum_size = Vector2(500, 500)
+	chart_path.chart_area.custom_minimum_size = Vector2(500, 500)
 	if reference_lap:
 		chart_speed.add_data(get_data(reference_lap, "auto_distance") as Array[float],
 				get_data(reference_lap, "speed") as Array[float], "Reference")
@@ -67,7 +67,7 @@ func draw_charts() -> void:
 		chart_steer.add_data(get_data(main_lap, "auto_distance") as Array[float],
 				get_data(main_lap, "steer") as Array[float], "Steering [°]")
 		chart_steer.set_chart_data_color(chart_steer.chart_data[-1], Color.DEEP_SKY_BLUE)
-	chart_steer.zero_centered = true
+	chart_steer.y_axis_primary.symmetric = true
 	if reference_lap:
 		chart_rpm.add_data(get_data(reference_lap, "auto_distance") as Array[float],
 				get_data(reference_lap, "rpm") as Array[float], "Reference")
@@ -116,7 +116,6 @@ func draw_charts() -> void:
 		chart_path.chart_data[-1].color_data = color_data
 		chart_path.chart_data[-1].color_map = ColorMapD3RdYlGn.new()
 		chart_path.chart_data[-1].title = "Speed [km/h]"
-	chart_path.equal_aspect = true
 	chart_path.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN
 	chart_speed.queue_redraw()
 	chart_steer.queue_redraw()
@@ -126,7 +125,7 @@ func draw_charts() -> void:
 	if main_lap:
 		var power_chart := Chart.new()
 		vbox.add_child(power_chart)
-		power_chart.custom_minimum_size = Vector2(500, 300)
+		power_chart.chart_area.custom_minimum_size = Vector2(500, 300)
 		var power_data: Array[float] = []
 		var rpm_data := get_data(main_lap, "rpm") as Array[float]
 		var torque_data := get_data(main_lap, "torque") as Array[float]
@@ -146,6 +145,8 @@ func draw_charts() -> void:
 		var torques: Array[float] = []
 		torques.assign(rpm_power_torque.map(func(value: Array) -> float: return value[2]))
 		power_chart.add_data(rpms, torques, "Torque [N.m]")
+		power_chart.add_secondary_y_axis()
+		power_chart.chart_data[-1].set_y_axis(power_chart.y_axis_secondary)
 		power_chart.add_data(rpms, powers, "Power [kW]")
 		power_chart.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN
 		power_chart.queue_redraw()
@@ -161,7 +162,7 @@ func draw_charts() -> void:
 		rpm_vbox_right.size_flags_stretch_ratio = 2
 		var chart_rpm_g := Chart.new()
 		rpm_vbox_right.add_child(chart_rpm_g)
-		chart_rpm_g.custom_minimum_size = Vector2(400, 300)
+		chart_rpm_g.chart_area.custom_minimum_size = Vector2(400, 300)
 		var speed_data := get_data(main_lap, "speed") as Array[float]
 		var rpm_data := get_data(main_lap, "rpm") as Array[float]
 		var g_data := get_data(main_lap, "g_lon") as Array[float]
@@ -188,7 +189,7 @@ func draw_charts() -> void:
 		chart_rpm_g.queue_redraw()
 		var chart_glon := Chart.new()
 		rpm_vbox_right.add_child(chart_glon)
-		chart_glon.custom_minimum_size = Vector2(400, 300)
+		chart_glon.chart_area.custom_minimum_size = Vector2(400, 300)
 		chart_glon.add_data(speed_filtered, g_filtered, "Lon. G vs Speed [G]")
 		chart_glon.chart_data[-1].plot_type = ChartData.PlotType.SCATTER
 		chart_glon.chart_data[-1].color_data = gear_filtered
