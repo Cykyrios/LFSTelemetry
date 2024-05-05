@@ -24,8 +24,8 @@ var plot_type := PlotType.LINE
 var color_min := 0.0
 var color_max := 0.0
 
-var x_axis: Axis = null
-var y_axis: Axis = null
+var x_axis: AxisX = null
+var y_axis: AxisY = null
 
 
 func _init(data_x: Array[float], data_y: Array[float], series_title := "New Series") -> void:

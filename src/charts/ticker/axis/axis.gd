@@ -26,6 +26,10 @@ var axis_padding := Vector2.ZERO
 var major_tick_color := Color(0.5, 0.5, 0.5, 1)
 var minor_tick_color := Color(0.3, 0.3, 0.3, 1)
 
+var draw_ticks := true
+var draw_grid := true
+var draw_labels := true
+
 
 func _init() -> void:
 	major_ticks = Ticker.new()
