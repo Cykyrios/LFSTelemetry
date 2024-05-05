@@ -48,7 +48,7 @@ func _init() -> void:
 
 
 func get_tick_space() -> int:
-	return floori(figure_size / axis_padding.y * 2)
+	return floori(figure_size / axis_padding.y)
 
 
 func set_scale(new_scale: Scale) -> void:

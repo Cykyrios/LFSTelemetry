@@ -16,10 +16,10 @@ var edge_bottom := Control.new()
 var edge_left := Control.new()
 var edge_right := Control.new()
 
-var x_axis_primary := Axis.new()
-var y_axis_primary := Axis.new()
-var x_axis_secondary: Axis = null
-var y_axis_secondary: Axis = null
+var x_axis_primary := AxisX.new()
+var y_axis_primary := AxisY.new()
+var x_axis_secondary: AxisX = null
+var y_axis_secondary: AxisY = null
 
 var chart_data: Array[ChartData] = []
 
@@ -55,8 +55,8 @@ func _draw() -> void:
 	for axis: Axis in [y_axis_primary, y_axis_secondary]:
 		if axis:
 			axis.figure_size = chart_area.size.y
-	var x_axes: Array[Axis] = []
-	var y_axes: Array[Axis] = []
+	var x_axes: Array[AxisX] = []
+	var y_axes: Array[AxisY] = []
 	for series in chart_data:
 		var x_axis := series.x_axis
 		var y_axis := series.y_axis
@@ -170,12 +170,12 @@ func add_data(data_x: Array[float], data_y: Array[float], title := "") -> void:
 
 
 func add_secondary_x_axis() -> void:
-	x_axis_secondary = Axis.new()
+	x_axis_secondary = AxisX.new()
 	x_axis_secondary.position = Axis.Position.TOP_RIGHT
 
 
 func add_secondary_y_axis() -> void:
-	y_axis_secondary = Axis.new()
+	y_axis_secondary = AxisY.new()
 	y_axis_secondary.position = Axis.Position.TOP_RIGHT
 
 
