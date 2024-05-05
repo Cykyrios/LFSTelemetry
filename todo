@@ -1,0 +1,43 @@
+TODO:
+
+* create/update session file after each lap/telemetry end, pointing to each recorded lap of the session (added folders for each session instead)
+* add some UI for recording (track name, car name, driver name, etc., maybe telemetry status)
+- draw everything... (see GUI notes)
+- consider processing data during recording instead of at the end (for live display)
+
+- GUI:
+	- move current lfs_telemetry scene to a specific window/page/tab, maybe display more info than just driver?
+	- add some charts to lfs_telemetry page for live telemetry output (throttle/brake, steering, speed?)
+	- consider making live telemetry a series of moving charts (last 10/20/30 seconds or so), time-based instead of distance-based
+	- add pages for full telemetry display (see ACC examples with MoTeC)
+	- include an option for track map overlay on any page? (or at least trajectory with a big dot at current position, if unable to get track map path or track image not clear enough)
+	- page with sector times and other info?
+
+- chart types:
+	- line chart (standard telemetry: speed, throttle, brake, etc.)
+	- scatter chart (points only, no lines), for engine rev plots
+	- histogram, for suspensions and engine rev
+	- 2d track view with colored trajectory options (speed, throttle/brake, steering, gear, anything else?)
+
+bonus:
+- add a warning in the UI to remind the user to create the car info file by pressing O in the garage
+- use said car info file to retrieve setup details
+- investigate using the replay analyser (RAF file) provided by LFS (outputs telemetry every 100th of a second from a replay)
+
+side notes for improved position (rank) detection via InSim:
+- use .pth file to get node positions
+- when receiving MCI packets, sort drivers by lap, then by node (with appropriate offset for start/finish node)
+- loop over groups of drivers on the same node, use (next node - previous node) for the "race direction" vector (or just node direction...),
+sort drivers by position relative to this vector (simple dot product?)
+- if needed, use driver velocity vector to help
+- pth generation methodology for tracks/layouts without a pth file:
+	- drive one full lap on either edge of the track (track limits)
+	- optional/usefulness TBD: drive one or more normal laps to get an average racing line
+	- alternative: use track center as derived from track limits
+	- optional again: drive one full lap on either edge of "absolute" limit (over track limits, against the walls, in the grass, etc.)
+	- do some magic math to generate node positions based on a standard time of 0.2s per node or something with a medium-powered car?
+
+side notes for general purpose InSim app:
+- auto turn signals off based on steering input (only works from OutSim)
+- light patterns for police, safety car, multiple flashes, etc.
+- light pattern editor with option to restore all lights to state before activating pattern (or current state, e.g. low beam but started with no lights)

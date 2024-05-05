@@ -7,13 +7,15 @@
 import matplotlib.pyplot as plt
 import pandas as pd
 import numpy as np
+import tkinter.filedialog as tk
 
-data = pd.read_csv("~/.local/share/godot/app_userdata/LFS Telemetry/telemetry.csv", delimiter=",")
+data = pd.read_csv(tk.askopenfile(initialdir="~/.local/share/godot/app_userdata/LFS Telemetry"),
+                   skiprows=2)
 
 
 def setup_plot():
     ax = plt.gca()
-    ax.set_xlabel("Time (s)")
+    ax.set_xlabel("Distance (m)")
     ax.legend()
     ax.minorticks_on()
     ax.grid(which="major")
@@ -44,40 +46,55 @@ def plot_xy(x_series, y_series, colors, labels):
     return ax
 
 
+if data["IndexDist"][10] == 0:
+    data["IndexDist"] = data["LapDist"]
+
 fig = new_figure(figname="Pos", figsize=[12, 6])
-ax = plot_against_time(x_series=data["Time"],
+ax = plot_against_time(x_series=data["IndexDist"],
                        y_series=[data["PosX"], data["PosY"], data["PosZ"]],
                        colors=["red", "green", "blue"], labels=["PosX", "PosY", "PosZ"])
 ax.set_ylabel("Position (m)")
 ax.set_title("Position")
 
 fig = new_figure(figname="Vel", figsize=[12, 6])
-ax = plot_against_time(x_series=data["Time"],
+ax = plot_against_time(x_series=data["IndexDist"],
                        y_series=[data["VelX"], data["VelY"], data["VelZ"]],
                        colors=["red", "green", "blue"], labels=["VelX", "VelY", "VelZ"])
 ax.set_ylabel("Velocity (m/s)")
 ax.set_title("Velocity")
-data["Speed"] = np.sqrt(data["VelX"]**2 + data["VelY"]**2 + data["VelZ"]**2) * 3.6
 ax2 = ax.twinx()
-ax2.plot(data["Time"], data["Speed"], label="Speed")
+ax2.plot(data["IndexDist"], data["Speed"], label="Speed")
 
 fig = new_figure(figname="Acc", figsize=[12, 6])
-ax = plot_against_time(x_series=data["Time"],
+ax = plot_against_time(x_series=data["IndexDist"],
                        y_series=[data["AccX"], data["AccY"], data["AccZ"]],
                        colors=["red", "green", "blue"], labels=["AccX", "AccY", "AccZ"])
 ax.set_ylabel("Acceleration (m/s²)")
 ax.set_title("Acceleration")
 
+fig = new_figure(figname="G forces", figsize=[12, 6])
+ax = plot_against_time(x_series=data["IndexDist"],
+                       y_series=[data["LatG"], data["LonG"], data["VerG"]],
+                       colors=["red", "green", "blue"], labels=["LatG", "LonG", "VerG"])
+ax.set_ylabel("G force")
+ax.set_title("G forces")
+
 fig = new_figure(figname="Rot", figsize=[12, 6])
-ax = plot_against_time(x_series=data["Time"],
+ax = plot_against_time(x_series=data["IndexDist"],
                        y_series=[data["RotX"], data["RotY"], data["RotZ"]],
                        colors=["red", "green", "blue"], labels=["RotX", "RotY", "RotZ"])
 ax.set_ylabel("Rotation (°)")
 ax.set_title("Rotation")
-setup_plot()
+
+fig = new_figure(figname="Pitch and Roll", figsize=[12, 6])
+ax = plot_against_time(x_series=data["IndexDist"],
+                       y_series=[data["Pitch"] * 180 / np.pi, data["Roll"] * 180 / np.pi],
+                       colors=["red", "green"], labels=["Pitch", "Roll"])
+ax.set_ylabel("Angle (deg)")
+ax.set_title("Pitch and Roll")
 
 fig = new_figure(figname="AngVel", figsize=[12, 6])
-ax = plot_against_time(x_series=data["Time"],
+ax = plot_against_time(x_series=data["IndexDist"],
                        y_series=[data["AngVelX"], data["AngVelY"], data["AngVelZ"]],
                        colors=["red", "green", "blue"],
                        labels=["AngVelX", "AngVelY", "AngVelZ"])
@@ -108,7 +125,7 @@ ax.set_title("Path (YZ)")
 
 fig = new_figure(figname="3D Path", figsize=[12, 6])
 ax = fig.add_subplot(projection="3d")
-ax.scatter(data["PosX"], data["PosY"], data["PosZ"], c=data["Time"], cmap="plasma",
+ax.scatter(data["PosX"], data["PosY"], data["PosZ"], c=data["IndexDist"], cmap="plasma",
            label="3D Path", marker=".")
 ax.set_title("3D Path")
 ax.set_xlabel("X (m)")
@@ -136,55 +153,64 @@ ax.set_ylabel("PosY")
 ax.set_title("Speed")
 ax.legend(*scatter.legend_elements(), title="Speed")
 
+fig = new_figure(figname="Distance", figsize=[12, 6])
+ax = plot_against_time(x_series=data["Time"],
+                       y_series=[data["LapDist"], data["IndexDist"]],
+                       colors=["red", "green"], labels=["Lap", "Index"])
+ax.set_ylabel("Distance (m)")
+ax.set_title("Distance")
+
 fig = new_figure(figname="Input", figsize=[12, 6])
 ax1 = plt.subplot(411)
 ax1.set_title("Input")
-ax1 = plot_against_time(data["Time"], [data["Throttle"], data["Brake"]], ["green", "red"],
+ax1 = plot_against_time(data["IndexDist"], [data["Throttle"], data["Brake"]], ["green", "red"],
                         ["Throttle", "Brake"])
 ax1.set_ylabel("Throttle/Brake")
 ax1.tick_params(labelbottom=False)
 ax1.set_xlabel("")
 ax2 = plt.subplot(412, sharex=ax1)
-ax2 = plot_against_time(data["Time"], [data["TC"], data["ABS"]], ["green", "red"], ["TC", "ABS"])
+ax2 = plot_against_time(data["IndexDist"], [data["TC"], data["ABS"]], ["green", "red"], ["TC", "ABS"])
 ax2.set_ylabel("TC/ABS")
 ax2.tick_params(labelbottom=False)
 ax2.set_xlabel("")
 ax3 = plt.subplot(413, sharex=ax1)
-ax3 = plot_against_time(data["Time"], [data["Clutch"], data["HBrake"]], ["blue", "brown"],
+ax3 = plot_against_time(data["IndexDist"], [data["Clutch"], data["HBrake"]], ["blue", "brown"],
                         ["Clutch", "HandBrake"])
 ax3.set_ylabel("Clutch/HBrake")
 ax3.tick_params(labelbottom=False)
 ax3.set_xlabel("")
 ax4 = plt.subplot(414, sharex=ax1)
-ax4 = plot_against_time(data["Time"], [data["Steer"]], ["blue"], ["Steer"])
+ax4 = plot_against_time(data["IndexDist"], [data["Steer"]], ["blue"], ["Steer"])
 ax4.set_ylabel("Steering")
 
 fig = new_figure(figname="RPM", figsize=[12, 6])
 ax = plt.gca()
-scatter = ax.scatter(data["Time"], data["RPM"], c=data["Gear"], cmap="jet", label="RPM")
+scatter = ax.scatter(data["IndexDist"], data["RPM"], c=data["Gear"], cmap="jet", label="RPM")
 setup_plot()
+# ax.set_xlim([0, 35])
+ax.set_ylim([0, None])
 ax.set_ylabel("RPM")
 ax.set_title("RPM")
 ax.legend(*scatter.legend_elements(), title="Gear")
 ax2 = ax.twinx()
-ax2.plot(data["Time"], data["Speed"], label="Speed")
+ax2.plot(data["IndexDist"], data["Speed"], label="Speed")
 ax2.set_ylabel("Speed (km/h)")
 ax2.set_ylim([0, None])
 
 fig = new_figure(figname="Power and Torque", figsize=[12, 6])
 ax = plt.gca()
-ax.plot(data["Time"], data["RPM"], c="red", label="RPM")
+ax.plot(data["IndexDist"], data["RPM"], c="red", label="RPM")
 setup_plot()
 ax.set_ylabel("RPM", c="red")
 ax.set_title("Power and Torque")
 data["Power"] = data["RPM"] * data["Torque"] * 2 * np.pi / 60.0 / 1000.0
 ax2 = ax.twinx()
-ax2.plot(data["Time"], data["Power"] * data["Throttle"], c="green", label="Power")
-ax2.plot(data["Time"], data["Power"], c="green", linestyle="--", label="Max Power", alpha=0.2)
+ax2.plot(data["IndexDist"], data["Power"] * data["Throttle"], c="green", label="Power")
+ax2.plot(data["IndexDist"], data["Power"], c="green", linestyle="--", label="Max Power", alpha=0.2)
 ax2.set_ylabel("Power (kW)", c="green")
 ax3 = ax.twinx()
-ax3.plot(data["Time"], data["Torque"] * data["Throttle"], c="blue", label="Torque")
-ax3.plot(data["Time"], data["Torque"], c="blue", linestyle="--", label="Max Torque", alpha=0.2)
+ax3.plot(data["IndexDist"], data["Torque"] * data["Throttle"], c="blue", label="Torque")
+ax3.plot(data["IndexDist"], data["Torque"], c="blue", linestyle="--", label="Max Torque", alpha=0.2)
 ax3.set_ylabel("Torque (N.m)", c="blue")
 ax3.spines.right.set_position(("axes", 1.08))
 
@@ -201,7 +227,7 @@ ax2.set_ylabel("Torque (N.m)", c="green")
 
 fig = new_figure(figname="Suspension", figsize=[12, 6])
 ax = plot_against_time(
-    x_series=data["Time"],
+    x_series=data["IndexDist"],
     y_series=[data["WRLSusp"] * 1000, data["WRRSusp"] * 1000, data["WFLSusp"] * 1000,
               data["WFRSusp"] * 1000],
     colors=["red", "green", "blue", "yellow"],
@@ -211,7 +237,7 @@ ax.set_title("Suspension")
 
 fig = new_figure(figname="Wheel Steer", figsize=[12, 6])
 ax = plot_against_time(
-    x_series=data["Time"],
+    x_series=data["IndexDist"],
     y_series=[data["WRLSteer"] * 180 / np.pi, data["WRRSteer"] * 180 / np.pi,
               data["WFLSteer"] * 180 / np.pi, data["WFRSteer"] * 180 / np.pi],
     colors=["red", "green", "blue", "yellow"],
@@ -222,7 +248,7 @@ setup_plot()
 
 fig = new_figure(figname="Wheel LatForce", figsize=[12, 6])
 ax = plot_against_time(
-    x_series=data["Time"],
+    x_series=data["IndexDist"],
     y_series=[data["WRLLat"] / 1000, data["WRRLat"] / 1000, data["WFLLat"] / 1000,
               data["WFRLat"] / 1000],
     colors=["red", "green", "blue", "yellow"],
@@ -233,7 +259,7 @@ setup_plot()
 
 fig = new_figure(figname="Wheel LonForce", figsize=[12, 6])
 ax = plot_against_time(
-    x_series=data["Time"],
+    x_series=data["IndexDist"],
     y_series=[data["WRLLon"] / 1000, data["WRRLon"] / 1000, data["WFLLon"] / 1000,
               data["WFRLon"] / 1000],
     colors=["red", "green", "blue", "yellow"],
@@ -244,7 +270,7 @@ setup_plot()
 
 fig = new_figure(figname="Wheel Load", figsize=[12, 6])
 ax = plot_against_time(
-    x_series=data["Time"],
+    x_series=data["IndexDist"],
     y_series=[data["WRLLoad"] / 1000, data["WRRLoad"] / 1000, data["WFLLoad"] / 1000,
               data["WFRLoad"] / 1000],
     colors=["red", "green", "blue", "yellow"],
@@ -255,7 +281,7 @@ setup_plot()
 
 fig = new_figure(figname="Wheel Velocity", figsize=[12, 6])
 ax = plot_against_time(
-    x_series=data["Time"],
+    x_series=data["IndexDist"],
     y_series=[data["WRLVel"], data["WRRVel"], data["WFLVel"], data["WFRVel"]],
     colors=["red", "green", "blue", "yellow"],
     labels=["WRLVel", "WRRVel", "WFLVel", "WFRVel"])
@@ -265,7 +291,7 @@ setup_plot()
 
 fig = new_figure(figname="Wheel Lean", figsize=[12, 6])
 ax = plot_against_time(
-    x_series=data["Time"],
+    x_series=data["IndexDist"],
     y_series=[data["WRLLean"] * 180 / np.pi, data["WRRLean"] * 180 / np.pi,
               data["WFLLean"] * 180 / np.pi, data["WFRLean"] * 180 / np.pi],
     colors=["red", "green", "blue", "yellow"],
@@ -276,7 +302,7 @@ setup_plot()
 
 fig = new_figure(figname="Air Temperature", figsize=[12, 6])
 ax = plot_against_time(
-    x_series=data["Time"],
+    x_series=data["IndexDist"],
     y_series=[data["WRLTemp"], data["WRRTemp"], data["WFLTemp"], data["WFRTemp"]],
     colors=["red", "green", "blue", "yellow"],
     labels=["WRLTemp", "WRRTemp", "WFLTemp", "WFRTemp"])
@@ -286,7 +312,7 @@ setup_plot()
 
 fig = new_figure(figname="Wheel Contact", figsize=[12, 6])
 ax = plot_against_time(
-    x_series=data["Time"],
+    x_series=data["IndexDist"],
     y_series=[data["WRLTouch"], data["WRRTouch"], data["WFLTouch"], data["WFRTouch"]],
     colors=["red", "green", "blue", "yellow"],
     labels=["WRLTouch", "WRRTouch", "WFLTouch", "WFRTouch"])
@@ -296,7 +322,7 @@ setup_plot()
 
 fig = new_figure(figname="Wheel Slip Fraction", figsize=[12, 6])
 ax = plot_against_time(
-    x_series=data["Time"],
+    x_series=data["IndexDist"],
     y_series=[data["WRLSlipFrac"], data["WRRSlipFrac"], data["WFLSlipFrac"], data["WFRSlipFrac"]],
     colors=["red", "green", "blue", "yellow"],
     labels=["WRLSlipFrac", "WRRSlipFrac", "WFLSlipFrac", "WFRSlipFrac"])
@@ -306,7 +332,7 @@ setup_plot()
 
 fig = new_figure(figname="Wheel Slip Ratio", figsize=[12, 6])
 ax = plot_against_time(
-    x_series=data["Time"],
+    x_series=data["IndexDist"],
     y_series=[data["WRLSlipRatio"], data["WRRSlipRatio"], data["WFLSlipRatio"],
               data["WFRSlipRatio"]],
     colors=["red", "green", "blue", "yellow"],
@@ -317,7 +343,7 @@ setup_plot()
 
 fig = new_figure(figname="Wheel Tangent Slip Angle", figsize=[12, 6])
 ax = plot_against_time(
-    x_series=data["Time"],
+    x_series=data["IndexDist"],
     y_series=[data["WRLTanSlip"], data["WRRTanSlip"], data["WFLTanSlip"], data["WFRTanSlip"]],
     colors=["red", "green", "blue", "yellow"],
     labels=["WRLTanSlip", "WRRTanSlip", "WFLTanSlip", "WFRTanSlip"])
