@@ -24,6 +24,10 @@ var y_axis_secondary: AxisY = null
 
 var chart_data: Array[ChartData] = []
 
+var tick_offset := 3
+var tick_size := 6
+var font_size := 11
+
 
 func _ready() -> void:
 	columns = 3
@@ -45,46 +49,59 @@ func _ready() -> void:
 	chart_area.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	chart_area.size_flags_vertical = Control.SIZE_EXPAND_FILL
 
+	chart_area.chart = self
 	chart_area.chart_data = chart_data
 
 
 func _draw() -> void:
+	_draw_background()
+	_draw_frame()
+	var axes:= _get_active_axes()
+	_update_axis_figure_sizes(axes)
+	_update_axis_ranges()
+	_draw_chart_elements(axes)
+
+
+func add_data(data_x: Array[float], data_y: Array[float], title := "") -> void:
+	if title == "":
+		title = "Series %d" % [chart_data.size() + 1]
+	var data_series := ChartData.new(data_x, data_y, title)
+	data_series.set_x_axis(x_axis_primary)
+	data_series.set_y_axis(y_axis_primary)
+	chart_data.append(data_series)
+
+
+func add_secondary_x_axis() -> void:
+	x_axis_secondary = AxisX.new()
+	x_axis_secondary.position = Axis.Position.TOP_RIGHT
+
+
+func add_secondary_y_axis() -> void:
+	y_axis_secondary = AxisY.new()
+	y_axis_secondary.position = Axis.Position.TOP_RIGHT
+
+
+func clear_chart() -> void:
+	chart_data.clear()
+
+
+func set_chart_data_color(data: ChartData, color: Color) -> void:
+	var _discard := data.color_data.resize(data.y_data.size())
+	data.color_map = ColorMap.create_from_color_samples([color], 1)
+
+
+func _draw_background() -> void:
 	draw_rect(Rect2(chart_area.position, chart_area.size), Color(0.2, 0.2, 0.2, 1))
-	draw_rect(Rect2(chart_area.position, chart_area.size), x_axis_primary.major_tick_color, false, 1)
-	var axes: Array[Axis] = [x_axis_primary, y_axis_primary]
-	if x_axis_secondary:
-		axes.append(x_axis_secondary)
-	if y_axis_secondary:
-		axes.append(y_axis_secondary)
-	for axis in axes:
-		if axis is AxisX:
-			axis.figure_size = chart_area.size.x
-		elif axis is AxisY:
-			axis.figure_size = chart_area.size.y
-		else:
-			push_error("Axis is neither AxisX nor AxisY.")
-			axis.figure_size = maxf(chart_area.size.x, chart_area.size.y)
-	for series in chart_data:
-		var x_axis := series.x_axis
-		var y_axis := series.y_axis
-		var x_limits := x_axis.major_ticks.locator.view_limits(series.x_data.min() as float,
-				series.x_data.max() as float)
-		x_axis.data_min = minf(x_axis.data_min, x_limits.x)
-		x_axis.data_max = maxf(x_axis.data_max, x_limits.y)
-		x_axis.set_view_limits(x_limits.x, x_limits.y)
-		var y_limits := y_axis.major_ticks.locator.view_limits(series.y_data.min() as float,
-				series.y_data.max() as float)
-		y_axis.data_min = minf(y_axis.data_min, y_limits.x)
-		y_axis.data_max = maxf(y_axis.data_max, y_limits.y)
-		y_axis.set_view_limits(y_limits.x, y_limits.y)
+
+
+func _draw_chart_elements(axes: Array[Axis]) -> void:
 	for axis in axes:
 		var offset := Vector2.ZERO
-		var tick_offset := 3
-		var tick_size := 6
 		var direction := 1
 		var opposite_label := 0
-		var font_size := 12
 		var is_x_axis := false
+
+		# Set drawing parameters
 		if axis is AxisX:
 			is_x_axis = true
 			if axis.draw_labels:
@@ -109,6 +126,8 @@ func _draw() -> void:
 				opposite_label = 1
 			else:
 				offset = edge_right.position
+
+		# Ensure axis is up to date
 		var locator := axis.major_ticks.locator
 		if locator is LocatorMaxN:
 			(locator as LocatorMaxN).symmetric = axis.symmetric
@@ -120,12 +139,12 @@ func _draw() -> void:
 		var margin := 0.5 * view_range * axis.margin
 		axis.update_view_interval()
 		axis.set_view_limits(axis.view_min - margin, axis.view_max + margin)
-		var locations := axis.major_ticks.locator.get_tick_locations()
-		var values := axis.major_ticks.locator.get_tick_values(axis.view_min, axis.view_max)
-		var labels := axis.major_ticks.formatter.format_ticks(values)
+
+		var major_locations := axis.major_ticks.locator.get_tick_locations()
 		var minor_locations := axis.minor_ticks.locator.get_tick_locations()
 		minor_locations = minor_locations.filter(func(value: float) -> bool:
-			return not locations.has(value))
+			return not major_locations.has(value))
+		# Draw minor grid lines and ticks
 		for location in minor_locations:
 			var chart_min := 0.0 if is_x_axis else chart_area.size.y
 			var chart_max := chart_area.size.x if is_x_axis else 0.0
@@ -145,10 +164,14 @@ func _draw() -> void:
 			var tick_vector := Vector2(0, tick_dimension) if is_x_axis else Vector2(tick_dimension, 0)
 			if axis.draw_ticks:
 				draw_line(pos, pos + tick_vector, axis.minor_tick_color)
-		for i in locations.size():
+
+		# Draw major grid lines, ticks, and labels
+		var values := axis.major_ticks.locator.get_tick_values(axis.view_min, axis.view_max)
+		var labels := axis.major_ticks.formatter.format_ticks(values)
+		for i in major_locations.size():
 			var chart_min := 0.0 if is_x_axis else chart_area.size.y
 			var chart_max := chart_area.size.x if is_x_axis else 0.0
-			var axis_pos := remap(locations[i], axis.view_min, axis.view_max, chart_min, chart_max)
+			var axis_pos := remap(major_locations[i], axis.view_min, axis.view_max, chart_min, chart_max)
 			var chart_limit := chart_area.size.x if is_x_axis else chart_area.size.y
 			if axis_pos < 0 or axis_pos > chart_limit:
 				continue
@@ -179,29 +202,45 @@ func _draw() -> void:
 			text.draw(get_canvas_item(), pos + label_offset)
 
 
-func add_data(data_x: Array[float], data_y: Array[float], title := "") -> void:
-	if title == "":
-		title = "Series %d" % [chart_data.size() + 1]
-	var data_series := ChartData.new(data_x, data_y, title)
-	data_series.set_x_axis(x_axis_primary)
-	data_series.set_y_axis(y_axis_primary)
-	chart_data.append(data_series)
+func _draw_frame() -> void:
+	draw_rect(Rect2(chart_area.position, chart_area.size), x_axis_primary.major_tick_color, false, 1)
 
 
-func add_secondary_x_axis() -> void:
-	x_axis_secondary = AxisX.new()
-	x_axis_secondary.position = Axis.Position.TOP_RIGHT
+func _get_active_axes() -> Array[Axis]:
+	var axes: Array[Axis] = []
+	if x_axis_secondary:
+		axes.append(x_axis_secondary)
+	if y_axis_secondary:
+		axes.append(y_axis_secondary)
+	if x_axis_primary:
+		axes.append(x_axis_primary)
+	if y_axis_primary:
+		axes.append(y_axis_primary)
+	return axes
 
 
-func add_secondary_y_axis() -> void:
-	y_axis_secondary = AxisY.new()
-	y_axis_secondary.position = Axis.Position.TOP_RIGHT
+func _update_axis_figure_sizes(axes: Array[Axis]) -> void:
+	for axis in axes:
+		if axis is AxisX:
+			axis.figure_size = chart_area.size.x
+		elif axis is AxisY:
+			axis.figure_size = chart_area.size.y
+		else:
+			push_error("Axis is neither AxisX nor AxisY.")
+			axis.figure_size = maxf(chart_area.size.x, chart_area.size.y)
 
 
-func clear_chart() -> void:
-	chart_data.clear()
-
-
-func set_chart_data_color(data: ChartData, color: Color) -> void:
-	var _discard := data.color_data.resize(data.y_data.size())
-	data.color_map = ColorMap.create_from_color_samples([color], 1)
+func _update_axis_ranges() -> void:
+	for series in chart_data:
+		var x_axis := series.x_axis
+		var y_axis := series.y_axis
+		var x_limits := x_axis.major_ticks.locator.view_limits(series.x_data.min() as float,
+				series.x_data.max() as float)
+		x_axis.data_min = minf(x_axis.data_min, x_limits.x)
+		x_axis.data_max = maxf(x_axis.data_max, x_limits.y)
+		x_axis.set_view_limits(x_limits.x, x_limits.y)
+		var y_limits := y_axis.major_ticks.locator.view_limits(series.y_data.min() as float,
+				series.y_data.max() as float)
+		y_axis.data_min = minf(y_axis.data_min, y_limits.x)
+		y_axis.data_max = maxf(y_axis.data_max, y_limits.y)
+		y_axis.set_view_limits(y_limits.x, y_limits.y)

@@ -4,26 +4,24 @@ extends Control
 
 var font := preload("res://src/charts/RecursiveSansLnrSt-Regular.otf")
 
+var chart: Chart = null
 var chart_data: Array[ChartData] = []
 
 var series_colors := ColorMapD3Category10.new().colors
 
-var title_offset := Vector2.ZERO
+var primary_title_offset := Vector2.ZERO
+var secondary_title_offset := Vector2.ZERO
 
 
 func _draw() -> void:
-	_update_plot_extents()
-	#_draw_background()
-	#_draw_gridlines()
+	if not chart:
+		push_error("ChartArea has no reference to parent Chart.")
+		return
 	_draw_data()
 
 
-func _draw_background() -> void:
-	draw_rect(Rect2(0, 0, size.x, size.y), Color(0.2, 0.2, 0.2, 1))
-
-
 func _draw_data() -> void:
-	_reset_title_offset()
+	_reset_title_offsets()
 	for i in chart_data.size():
 		var series := chart_data[i]
 		var x_axis := series.x_axis
@@ -64,43 +62,7 @@ func _draw_data() -> void:
 				draw_polyline_colors(points, colors, 1, true)
 			ChartData.PlotType.SCATTER:
 				for j in point_count:
-					draw_arc(points[j], 3, 0, 2 * PI, 9, colors[j], 0.5, true)
-
-
-func _draw_gridlines() -> void:
-	var x_axes: Array[Axis] = []
-	var y_axes: Array[Axis] = []
-	for series in chart_data:
-		var x_axis := series.x_axis
-		var y_axis := series.y_axis
-		if x_axes.find(x_axis) < 0:
-			x_axes.append(x_axis)
-			var locations := x_axis.major_ticks.locator.get_tick_locations()
-			for location in locations:
-				var pos_x := remap(location, x_axis.data_min, x_axis.data_max, 0, size.x)
-				if pos_x < 0 or pos_x > size.x:
-					continue
-				draw_line( Vector2(pos_x, 0), Vector2(pos_x, size.y), x_axis.major_tick_color)
-			locations = x_axis.minor_ticks.locator.get_tick_locations()
-			for location in locations:
-				var pos_x := remap(location, x_axis.data_min, x_axis.data_max, 0, size.x)
-				if pos_x < 0 or pos_x > size.x:
-					continue
-				draw_line( Vector2(pos_x, 0), Vector2(pos_x, size.y), x_axis.minor_tick_color)
-		if y_axes.find(y_axis) < 0:
-			y_axes.append(y_axis)
-			var locations := y_axis.major_ticks.locator.get_tick_locations()
-			for location in locations:
-				var pos_y := remap(location, y_axis.data_min, y_axis.data_max, size.y, 0)
-				if pos_y < 0 or pos_y > size.y:
-					continue
-				draw_line( Vector2(0, pos_y), Vector2(size.x, pos_y), y_axis.major_tick_color)
-			locations = y_axis.minor_ticks.locator.get_tick_locations()
-			for location in locations:
-				var pos_y := remap(location, y_axis.data_min, y_axis.data_max, size.y, 0)
-				if pos_y < 0 or pos_y > size.y:
-					continue
-				draw_line( Vector2(0, pos_y), Vector2(size.x, pos_y), y_axis.minor_tick_color)
+					draw_arc(points[j], 3, 0, 2 * PI, 7, colors[j])
 
 
 func _draw_title(series: ChartData, color_map: ColorMap) -> void:
@@ -115,13 +77,18 @@ func _draw_title(series: ChartData, color_map: ColorMap) -> void:
 		var mean_color_value := (min_color_value + max_color_value) / 2.0
 		color = color_map.get_color(color_map.get_normalized_value(
 				mean_color_value, min_color_value, max_color_value))
-	text.draw(get_canvas_item(), title_offset, color)
-	title_offset.y += text.get_line_ascent() + text.get_line_descent()
+	var new_offset := text.get_line_ascent() + text.get_line_descent()
+	if series.y_axis == chart.y_axis_primary:
+		text.draw(get_canvas_item(), primary_title_offset, color)
+		primary_title_offset.y += new_offset
+	elif series.y_axis == chart.y_axis_secondary:
+		var secondary_axis_offset := Vector2(size.x - text.get_line_width(), 0)
+		text.draw(get_canvas_item(), secondary_title_offset + secondary_axis_offset, color)
+		secondary_title_offset.y += new_offset
+	else:
+		push_error("Could not find axis to print series title.")
 
 
-func _reset_title_offset() -> void:
-	title_offset = Vector2(5, 2)
-
-
-func _update_plot_extents() -> void:
-	pass
+func _reset_title_offsets() -> void:
+	primary_title_offset = Vector2(5, 2)
+	secondary_title_offset = Vector2(-5, 2)
