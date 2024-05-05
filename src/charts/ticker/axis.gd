@@ -23,6 +23,9 @@ var view_max := INF
 var figure_size := 0.0
 var axis_padding := Vector2.ZERO
 
+var major_tick_color := Color(0.5, 0.5, 0.5, 1)
+var minor_tick_color := Color(0.5, 0.5, 0.5, 0.3)
+
 
 func _init() -> void:
 	major_ticks = Ticker.new()
@@ -66,8 +69,9 @@ func set_view_limits(vmin := -INF, vmax := INF) -> void:
 
 
 func update_view_interval() -> void:
-	view_min = data_min
-	view_max = data_max
+	var limits := major_ticks.locator.view_limits(data_min, data_max)
+	view_min = limits.x
+	view_max = limits.y
 	if is_equal_approx(view_min, view_max):
 		view_min -= 1
 		view_max += 1

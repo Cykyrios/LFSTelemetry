@@ -48,6 +48,7 @@ func _ready() -> void:
 
 
 func _draw() -> void:
+	draw_rect(Rect2(chart_area.position, chart_area.size), Color(0.2, 0.2, 0.2, 1))
 	for axis: Axis in [x_axis_primary, x_axis_secondary]:
 		if axis:
 			axis.figure_size = chart_area.size.x
@@ -67,6 +68,11 @@ func _draw() -> void:
 		var font_size := 12
 		if x_axes.find(x_axis) < 0:
 			x_axes.append(x_axis)
+			if x_axis.major_ticks.locator is LocatorMaxN:
+				(x_axis.major_ticks.locator as LocatorMaxN).symmetric = x_axis.symmetric
+				var limits :=  (x_axis.major_ticks.locator as LocatorMaxN).view_limits(
+						x_axis.data_min, x_axis.data_max)
+				x_axis.set_view_limits(limits.x, limits.y)
 			var locations := x_axis.major_ticks.locator.get_tick_locations()
 			var values := x_axis.major_ticks.locator.get_tick_values(x_axis.view_min, x_axis.view_max)
 			var labels := x_axis.major_ticks.formatter.format_ticks(values)
@@ -80,10 +86,13 @@ func _draw() -> void:
 						0, chart_area.size.x)
 				if axis_pos < 0 or axis_pos > chart_area.size.x:
 					continue
+				var pos := Vector2(offset.x + axis_pos, offset.y)
+				draw_line(Vector2(pos.x, chart_area.position.y),
+						Vector2(pos.x, chart_area.position.y + chart_area.size.y),
+						x_axis.major_tick_color)
+				draw_line(pos, pos + Vector2(0, direction * tick_size), x_axis.major_tick_color)
 				var text := TextLine.new()
 				var _discard := text.add_string(labels[i], font, font_size)
-				var pos := Vector2(offset.x + axis_pos, offset.y)
-				draw_line(pos, pos + Vector2(0, direction * tick_size), Color.WHITE)
 				var label_offset := pos + Vector2(
 					-text.get_line_width() / 2,
 					direction * (tick_size + tick_offset) - opposite_label * (
@@ -92,6 +101,11 @@ func _draw() -> void:
 				text.draw(get_canvas_item(), label_offset)
 		if y_axes.find(y_axis) < 0:
 			y_axes.append(y_axis)
+			if y_axis.major_ticks.locator is LocatorMaxN:
+				(y_axis.major_ticks.locator as LocatorMaxN).symmetric = y_axis.symmetric
+				var limits := (y_axis.major_ticks.locator as LocatorMaxN).view_limits(
+						y_axis.data_min, y_axis.data_max)
+				y_axis.set_view_limits(limits.x, limits.y)
 			var locations := y_axis.major_ticks.locator.get_tick_locations()
 			var values := y_axis.major_ticks.locator.get_tick_values(y_axis.view_min, y_axis.view_max)
 			var labels := y_axis.major_ticks.formatter.format_ticks(values)
@@ -106,10 +120,13 @@ func _draw() -> void:
 						chart_area.size.y, 0)
 				if axis_pos < 0 or axis_pos > chart_area.size.y:
 					continue
+				var pos := Vector2(offset.x, offset.y + axis_pos)
+				draw_line(Vector2(chart_area.position.x, pos.y),
+						Vector2(chart_area.position.x + chart_area.size.x, pos.y),
+						y_axis.major_tick_color)
+				draw_line(pos, pos + Vector2(direction * tick_size, 0), y_axis.major_tick_color)
 				var text := TextLine.new()
 				var _discard := text.add_string(labels[i], font, font_size)
-				var pos := Vector2(offset.x, offset.y + axis_pos)
-				draw_line(pos, pos + Vector2(direction * tick_size, 0), Color.WHITE)
 				var label_offset := Vector2(
 					direction * (tick_offset + tick_size) - opposite_label * text.get_line_width(),
 					-text.get_line_ascent() / 2

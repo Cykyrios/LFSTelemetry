@@ -16,6 +16,13 @@ func _get_tick_locations() -> Array[float]:
 	return []
 
 
+func _view_limits(vmin: float, vmax: float) -> Vector2:
+	if is_equal_approx(vmin, vmax):
+		vmin -= 1
+		vmax += 1
+	return Vector2(vmin, vmax)
+
+
 func get_tick_locations() -> Array[float]:
 	return _get_tick_locations()
 
@@ -25,10 +32,13 @@ func scale_range(vmin: float, vmax: float, n := 1) -> float:
 	if is_zero_approx(delta):
 		vmin -= 1
 		vmax += 1
-	var average := (vmin + vmax) / 2
 	var scale := pow(10, floorf(log(delta / n) / log(10)))
 	return scale
 
 
 func get_tick_values(vmin: float, vmax: float) -> Array[float]:
 	return _get_tick_values(vmin, vmax)
+
+
+func view_limits(vmin: float, vmax: float) -> Vector2:
+	return _view_limits(vmin, vmax)

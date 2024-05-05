@@ -13,8 +13,8 @@ var title_offset := Vector2.ZERO
 
 func _draw() -> void:
 	_update_plot_extents()
-	_draw_background()
-	_draw_gridlines()
+	#_draw_background()
+	#_draw_gridlines()
 	_draw_data()
 
 
@@ -34,14 +34,10 @@ func _draw_data() -> void:
 		var point_count := mini(x_data.size(), y_data.size())
 		var _discard := points.resize(point_count)
 
-		if x_axis.major_ticks.locator is LocatorMaxN:
-			(x_axis.major_ticks.locator as LocatorMaxN).symmetric = x_axis.symmetric
-		if y_axis.major_ticks.locator is LocatorMaxN:
-			(y_axis.major_ticks.locator as LocatorMaxN).symmetric = y_axis.symmetric
 		for j in point_count:
 			points[j] = Vector2(
-				remap(x_data[j], x_axis.data_min, x_axis.data_max, 0, size.x),
-				remap(y_data[j], y_axis.data_min, y_axis.data_max, size.y, 0)
+				remap(x_data[j], x_axis.view_min, x_axis.view_max, 0, size.x),
+				remap(y_data[j], y_axis.view_min, y_axis.view_max, size.y, 0)
 			)
 		var color_map: ColorMap = null
 		if (
@@ -72,8 +68,6 @@ func _draw_data() -> void:
 
 
 func _draw_gridlines() -> void:
-	var main_color := Color(0.5, 0.5, 0.5, 1)
-	var sub_color := Color(0.5, 0.5, 0.5, 0.3)
 	var x_axes: Array[Axis] = []
 	var y_axes: Array[Axis] = []
 	for series in chart_data:
@@ -86,13 +80,13 @@ func _draw_gridlines() -> void:
 				var pos_x := remap(location, x_axis.data_min, x_axis.data_max, 0, size.x)
 				if pos_x < 0 or pos_x > size.x:
 					continue
-				draw_line( Vector2(pos_x, 0), Vector2(pos_x, size.y), main_color)
+				draw_line( Vector2(pos_x, 0), Vector2(pos_x, size.y), x_axis.major_tick_color)
 			locations = x_axis.minor_ticks.locator.get_tick_locations()
 			for location in locations:
 				var pos_x := remap(location, x_axis.data_min, x_axis.data_max, 0, size.x)
 				if pos_x < 0 or pos_x > size.x:
 					continue
-				draw_line( Vector2(pos_x, 0), Vector2(pos_x, size.y), sub_color)
+				draw_line( Vector2(pos_x, 0), Vector2(pos_x, size.y), x_axis.minor_tick_color)
 		if y_axes.find(y_axis) < 0:
 			y_axes.append(y_axis)
 			var locations := y_axis.major_ticks.locator.get_tick_locations()
@@ -100,13 +94,13 @@ func _draw_gridlines() -> void:
 				var pos_y := remap(location, y_axis.data_min, y_axis.data_max, size.y, 0)
 				if pos_y < 0 or pos_y > size.y:
 					continue
-				draw_line( Vector2(0, pos_y), Vector2(size.x, pos_y), main_color)
+				draw_line( Vector2(0, pos_y), Vector2(size.x, pos_y), y_axis.major_tick_color)
 			locations = y_axis.minor_ticks.locator.get_tick_locations()
 			for location in locations:
 				var pos_y := remap(location, y_axis.data_min, y_axis.data_max, size.y, 0)
 				if pos_y < 0 or pos_y > size.y:
 					continue
-				draw_line( Vector2(0, pos_y), Vector2(size.x, pos_y), sub_color)
+				draw_line( Vector2(0, pos_y), Vector2(size.x, pos_y), y_axis.minor_tick_color)
 
 
 func _draw_title(series: ChartData, color_map: ColorMap) -> void:

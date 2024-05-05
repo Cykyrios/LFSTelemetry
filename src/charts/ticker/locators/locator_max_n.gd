@@ -2,8 +2,8 @@ class_name LocatorMaxN
 extends Locator
 
 
-var intervals := 9
-var auto_intervals := true
+var intervals := 10
+var auto_intervals := false
 var steps: Array[float] = [1, 2, 2.5, 3, 4, 5, 10]
 var integer := false
 var symmetric := false
@@ -29,7 +29,7 @@ func _get_tick_values(vmin: float, vmax: float) -> Array[float]:
 	return locations
 
 
-func view_limits(dmin: float, dmax: float) -> Vector2:
+func _view_limits(dmin: float, dmax: float) -> Vector2:
 	if symmetric:
 		dmax = maxf(absf(dmax), absf(dmin))
 		dmin = -dmax
