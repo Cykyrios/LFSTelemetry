@@ -14,7 +14,6 @@ var min_ticks := 2
 
 
 func _get_tick_locations() -> Array[float]:
-	axis.update_view_interval()
 	return get_tick_values(axis.view_min, axis.view_max)
 
 

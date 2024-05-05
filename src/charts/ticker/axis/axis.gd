@@ -15,10 +15,11 @@ var symmetric := false
 var major_ticks: Ticker = null
 var minor_ticks: Ticker = null
 
-var data_min := -INF
-var data_max := INF
-var view_min := -INF
-var view_max := INF
+var data_min := INF
+var data_max := -INF
+var view_min := INF
+var view_max := -INF
+var margin := 0.05
 
 var figure_size := 0.0
 var axis_padding := Vector2.ZERO
@@ -61,15 +62,22 @@ func set_scale(new_scale: Scale) -> void:
 		set_view_limits(view_min, view_max)
 
 
-func set_view_limits(vmin := -INF, vmax := INF) -> void:
+func set_view_limits(vmin := INF, vmax := -INF, reduce := false) -> void:
+	if not reduce:
+		vmin = minf(vmin, view_min)
+		vmax = maxf(vmax, view_max)
 	if scale == Scale.LOGARITHMIC:
 		vmin = maxf(vmin, 1e-6)
 		vmax = maxf(vmax, 1e-6)
 	if is_equal_approx(vmin, vmax):
 		vmin -= 1
 		vmax += 1
-	view_min = vmin
-	view_max = vmax
+	if vmin > vmax:
+		view_min = vmax
+		view_max = vmin
+	else:
+		view_min = vmin
+		view_max = vmax
 
 
 func update_view_interval() -> void:

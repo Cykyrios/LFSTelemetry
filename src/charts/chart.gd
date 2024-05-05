@@ -69,9 +69,13 @@ func _draw() -> void:
 		var y_axis := series.y_axis
 		var x_limits := x_axis.major_ticks.locator.view_limits(series.x_data.min() as float,
 				series.x_data.max() as float)
+		x_axis.data_min = minf(x_axis.data_min, x_limits.x)
+		x_axis.data_max = maxf(x_axis.data_max, x_limits.y)
 		x_axis.set_view_limits(x_limits.x, x_limits.y)
 		var y_limits := y_axis.major_ticks.locator.view_limits(series.y_data.min() as float,
 				series.y_data.max() as float)
+		y_axis.data_min = minf(y_axis.data_min, y_limits.x)
+		y_axis.data_max = maxf(y_axis.data_max, y_limits.y)
 		y_axis.set_view_limits(y_limits.x, y_limits.y)
 	for axis in axes:
 		var offset := Vector2.ZERO
@@ -110,6 +114,12 @@ func _draw() -> void:
 			(locator as LocatorMaxN).symmetric = axis.symmetric
 			var limits := (locator as LocatorMaxN).view_limits(axis.view_min, axis.view_max)
 			axis.set_view_limits(limits.x, limits.y)
+		var vmin := axis.view_min
+		var vmax := axis.view_max
+		var view_range := vmax - vmin
+		var margin := 0.5 * view_range * axis.margin
+		axis.update_view_interval()
+		axis.set_view_limits(axis.view_min - margin, axis.view_max + margin)
 		var locations := axis.major_ticks.locator.get_tick_locations()
 		var values := axis.major_ticks.locator.get_tick_values(axis.view_min, axis.view_max)
 		var labels := axis.major_ticks.formatter.format_ticks(values)
