@@ -1,6 +1,8 @@
 class_name Chart
 extends GridContainer
 
+# Implementation takes heavy inspiration from bits of matplotlib for tick placement
+# and label formatting.
 
 const AXIS_PADDING := Vector2(60, 25)
 const MIN_PADDING := 1 * Vector2.ONE
