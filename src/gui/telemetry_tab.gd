@@ -27,6 +27,7 @@ func draw_charts() -> void:
 		var child := scroll_container.get_children()[-1]
 		scroll_container.remove_child(child)
 		child.queue_free()
+	await get_tree().process_frame
 	var vbox := VBoxContainer.new()
 	vbox.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	scroll_container.add_child(vbox)
@@ -103,6 +104,9 @@ func draw_charts() -> void:
 		chart_throttle.add_data(get_data(main_lap, "auto_distance") as Array[float],
 				get_data(main_lap, "throttle") as Array[float], "Throttle [%]")
 		chart_throttle.set_chart_data_color(chart_throttle.chart_data[-1], Color.LIME_GREEN)
+		chart_throttle.y_axis_primary.data_min = -100 if chart_throttle.chart_data[-1].y_data.any(
+				func(value: float) -> bool: return value < 0) else 0
+		chart_throttle.y_axis_primary.data_max = 100
 	if reference_lap:
 		chart_brake.add_data(get_data(reference_lap, "auto_distance") as Array[float],
 				get_data(reference_lap, "brake") as Array[float], "Reference")
@@ -111,6 +115,8 @@ func draw_charts() -> void:
 		chart_brake.add_data(get_data(main_lap, "auto_distance") as Array[float],
 				get_data(main_lap, "brake") as Array[float], "Brake [%]")
 		chart_brake.set_chart_data_color(chart_brake.chart_data[-1], Color.CRIMSON)
+		chart_brake.y_axis_primary.data_min = 0
+		chart_brake.y_axis_primary.data_max = 100
 	if reference_lap:
 		chart_path.add_data(get_data(reference_lap, "x_pos") as Array[float],
 				get_data(reference_lap, "y_pos") as Array[float], "Reference")
@@ -129,11 +135,14 @@ func draw_charts() -> void:
 		chart_path.chart_data[-1].title = "Speed [km/h]"
 	chart_path.equal_aspect = true
 	chart_path.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN
+	await get_tree().process_frame
 	chart_speed.queue_redraw()
 	chart_steer.queue_redraw()
 	chart_rpm.queue_redraw()
 	chart_gear.queue_redraw()
 	chart_path.queue_redraw()
+	chart_throttle.queue_redraw()
+	chart_brake.queue_redraw()
 	if main_lap:
 		var power_chart := Chart.new()
 		vbox.add_child(power_chart)
@@ -157,10 +166,9 @@ func draw_charts() -> void:
 		var torques: Array[float] = []
 		torques.assign(rpm_power_torque.map(func(value: Array) -> float: return value[2]))
 		power_chart.add_data(rpms, torques, "Torque [N.m]")
-		power_chart.add_secondary_y_axis()
-		power_chart.chart_data[-1].set_y_axis(power_chart.y_axis_secondary)
 		power_chart.add_data(rpms, powers, "Power [kW]")
 		power_chart.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN
+		await get_tree().process_frame
 		power_chart.queue_redraw()
 	if main_lap:
 		var rpm_hbox := HBoxContainer.new()
@@ -198,7 +206,6 @@ func draw_charts() -> void:
 		chart_rpm_g.chart_data[-1].plot_type = ChartData.PlotType.SCATTER
 		chart_rpm_g.chart_data[-1].color_data = gear_filtered
 		chart_rpm_g.chart_data[-1].color_map = ColorMapTurbo.new()
-		chart_rpm_g.queue_redraw()
 		var chart_glon := Chart.new()
 		rpm_vbox_right.add_child(chart_glon)
 		chart_glon.chart_area.custom_minimum_size = Vector2(400, 300)
@@ -206,8 +213,9 @@ func draw_charts() -> void:
 		chart_glon.chart_data[-1].plot_type = ChartData.PlotType.SCATTER
 		chart_glon.chart_data[-1].color_data = gear_filtered
 		chart_glon.chart_data[-1].color_map = ColorMapTurbo.new()
+		await get_tree().process_frame
+		chart_rpm_g.queue_redraw()
 		chart_glon.queue_redraw()
-	await get_tree().process_frame
 
 
 func get_data(lap: LapData, data_type: String) -> Array[float]:
@@ -229,7 +237,8 @@ func get_data(lap: LapData, data_type: String) -> Array[float]:
 			else:
 				array.assign(lap.car_data.map(func(data: CarData) -> float: return data.lap_distance))
 		"speed":
-			array.assign(lap.car_data.map(func(data: CarData) -> float: return data.speed))
+			array.assign(lap.car_data.map(func(data: CarData) -> float: return GISUtils.convert_speed(
+					data.speed, GISUtils.SpeedUnit.METER_PER_SECOND, GISUtils.SpeedUnit.KPH)))
 		"steer":
 			array.assign(lap.car_data.map(func(data: CarData) -> float: return data.steering))
 		"gear":
@@ -241,9 +250,9 @@ func get_data(lap: LapData, data_type: String) -> Array[float]:
 		"y_pos":
 			array.assign(lap.car_data.map(func(data: CarData) -> float: return data.position.y))
 		"throttle":
-			array.assign(lap.car_data.map(func(data: CarData) -> float: return data.throttle))
+			array.assign(lap.car_data.map(func(data: CarData) -> float: return 100 * data.throttle))
 		"brake":
-			array.assign(lap.car_data.map(func(data: CarData) -> float: return data.brake))
+			array.assign(lap.car_data.map(func(data: CarData) -> float: return 100 * data.brake))
 		"torque":
 			array.assign(lap.car_data.map(func(data: CarData) -> float: return data.max_torque_at_rpm))
 		"g_lon":
