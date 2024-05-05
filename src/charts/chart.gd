@@ -24,6 +24,8 @@ var y_axis_secondary: AxisY = null
 
 var chart_data: Array[ChartData] = []
 
+var equal_aspect := false
+
 var tick_offset := 3
 var tick_size := 6
 var font_size := 11
@@ -58,7 +60,7 @@ func _draw() -> void:
 	_draw_frame()
 	var axes:= _get_active_axes()
 	_update_axis_figure_sizes(axes)
-	_update_axis_ranges()
+	_update_axis_ranges(axes)
 	_draw_chart_elements(axes)
 
 
@@ -137,7 +139,6 @@ func _draw_chart_elements(axes: Array[Axis]) -> void:
 		var vmax := axis.view_max
 		var view_range := vmax - vmin
 		var margin := 0.5 * view_range * axis.margin
-		axis.update_view_interval()
 		axis.set_view_limits(axis.view_min - margin, axis.view_max + margin)
 
 		var major_locations := axis.major_ticks.locator.get_tick_locations()
@@ -230,7 +231,7 @@ func _update_axis_figure_sizes(axes: Array[Axis]) -> void:
 			axis.figure_size = maxf(chart_area.size.x, chart_area.size.y)
 
 
-func _update_axis_ranges() -> void:
+func _update_axis_ranges(axes: Array[Axis]) -> void:
 	for series in chart_data:
 		var x_axis := series.x_axis
 		var y_axis := series.y_axis
@@ -244,3 +245,39 @@ func _update_axis_ranges() -> void:
 		y_axis.data_min = minf(y_axis.data_min, y_limits.x)
 		y_axis.data_max = maxf(y_axis.data_max, y_limits.y)
 		y_axis.set_view_limits(y_limits.x, y_limits.y)
+	for axis in axes:
+		axis.update_view_interval()
+	if not equal_aspect:
+		return
+	# FIXME: This does not properly transform secondary axes, simply adding the
+	# additional range skews the data. This is left as is for now as the intended
+	# use (track map) shouldn't require secondary axes anyway.
+	var chart_aspect := chart_area.size.x / chart_area.size.y
+	var ranges: Array[float] = []
+	var bounded_ranges: Array[float] = []
+	var max_x_range := 0.0
+	var max_y_range := 0.0
+	for axis in axes:
+		ranges.append(axis.view_max - axis.view_min)
+		if axis is AxisX:
+			bounded_ranges.append(ranges[-1] / chart_area.size.x)
+			max_x_range = maxf(max_x_range, ranges[-1])
+		elif axis is AxisY:
+			bounded_ranges.append(ranges[-1] / chart_area.size.y)
+			max_y_range = maxf(max_y_range, ranges[-1])
+	var bounded_range := ranges[bounded_ranges.find(bounded_ranges.max())]
+	var bounded_is_x := false
+	if axes[ranges.find(bounded_range)] is AxisX:
+		bounded_is_x = true
+	for i in axes.size():
+		var axis := axes[i]
+		var equal_range := bounded_range
+		var max_range := 0.0
+		if axis is AxisX:
+			equal_range *= 1.0 if bounded_is_x else chart_aspect
+			max_range = max_x_range
+		else:
+			equal_range *= 1.0 if not bounded_is_x else (1 / chart_aspect)
+			max_range = max_y_range
+		var half_range := (equal_range - max_range) / 2.0
+		axis.set_view_limits(axis.view_min - half_range, axis.view_max + half_range)

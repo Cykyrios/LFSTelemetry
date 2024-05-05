@@ -116,6 +116,7 @@ func draw_charts() -> void:
 		chart_path.chart_data[-1].color_data = color_data
 		chart_path.chart_data[-1].color_map = ColorMapD3RdYlGn.new()
 		chart_path.chart_data[-1].title = "Speed [km/h]"
+	chart_path.equal_aspect = true
 	chart_path.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN
 	chart_speed.queue_redraw()
 	chart_steer.queue_redraw()
