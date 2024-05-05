@@ -5,11 +5,11 @@ extends RefCounted
 var font := preload("res://src/charts/RecursiveSansLnrSt-Regular.otf")
 
 enum Position {BOTTOM_LEFT, TOP_RIGHT}
-enum Scale {Linear, Logarithmic}
+enum Scale {LINEAR, LOGARITHMIC}
 
 var position := Position.BOTTOM_LEFT
 var autoscale := true
-var scale := Scale.Linear
+var scale := Scale.LINEAR
 var symmetric := false
 
 var major_ticks: Ticker = null
@@ -53,12 +53,12 @@ func get_tick_space() -> int:
 
 func set_scale(new_scale: Scale) -> void:
 	scale = new_scale
-	if scale == Scale.Logarithmic:
+	if scale == Scale.LOGARITHMIC:
 		set_view_limits(view_min, view_max)
 
 
 func set_view_limits(vmin := -INF, vmax := INF) -> void:
-	if scale == Scale.Logarithmic:
+	if scale == Scale.LOGARITHMIC:
 		vmin = maxf(vmin, 1e-6)
 		vmax = maxf(vmax, 1e-6)
 	if is_equal_approx(vmin, vmax):
