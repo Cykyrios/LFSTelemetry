@@ -26,7 +26,7 @@ func _get_tick_locations() -> Array[float]:
 	var vmax := axis.view_max
 	var t0 := major_locations[0]
 	var tmin := roundi((vmin - t0) / minor_step)
-	var tmax := roundi((vmax - t0) / minor_step) + 1
+	var tmax := roundi((vmax - t0) / minor_step) + divisions
 	var locations: Array[float] = []
 	var _discard := locations.resize(tmax - tmin)
 	for i in locations.size():
