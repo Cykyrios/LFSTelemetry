@@ -1,76 +1,90 @@
 class_name Chart
-extends Control
+extends GridContainer
 
+
+const AXIS_PADDING := Vector2(60, 25)
+const MIN_PADDING := 1 * Vector2.ONE
 
 var font := preload("res://src/charts/RecursiveSansLnrSt-Regular.otf")
 
+var chart_area := ChartArea.new()
+var corner_top_left := Control.new()
+var corner_top_right := Control.new()
+var corner_bottom_left := Control.new()
+var corner_bottom_right := Control.new()
+var edge_top := Control.new()
+var edge_bottom := Control.new()
+var edge_left := Control.new()
+var edge_right := Control.new()
+
+var x_axis_primary := AxisX.new()
+var y_axis_primary := AxisY.new()
+var x_axis_secondary: AxisX = null
+var y_axis_secondary: AxisY = null
+
 var chart_data: Array[ChartData] = []
 
-var x_margin := 0.02
-var y_margin := 0.02
-var x_plot_min := INF
-var x_plot_max := -INF
-var y_plot_min := INF
-var y_plot_max := -INF
-
-var series_colors := ColorMapD3Category10.new().colors
-
-var title_offset := Vector2.ZERO
-var labels_width := 0.0
-
 var equal_aspect := false
-var zero_centered := false
+
+var tick_offset := 3
+var tick_size := 6
+var font_size := 11
 
 
 func _ready() -> void:
-	var text := TextLine.new()
-	var _string := text.add_string("00000", font, 12)
-	labels_width = text.get_line_width()
+	columns = 3
+	add_theme_constant_override(&"h_separation", 0)
+	add_theme_constant_override(&"v_separation", 0)
+	add_child(corner_top_left)
+	add_child(edge_top)
+	add_child(corner_top_right)
+	add_child(edge_left)
+	add_child(chart_area)
+	add_child(edge_right)
+	add_child(corner_bottom_left)
+	add_child(edge_bottom)
+	add_child(corner_bottom_right)
+	edge_top.custom_minimum_size = MIN_PADDING * Vector2(0, 1)
+	edge_left.custom_minimum_size = MIN_PADDING * Vector2(1, 0)
+	edge_right.custom_minimum_size = MIN_PADDING * Vector2(1, 0)
+	edge_bottom.custom_minimum_size = MIN_PADDING * Vector2(0, 1)
+	chart_area.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	chart_area.size_flags_vertical = Control.SIZE_EXPAND_FILL
+
+	chart_area.chart = self
+	chart_area.chart_data = chart_data
 
 
 func _draw() -> void:
-	_update_plot_extents()
 	_draw_background()
-	_draw_gridlines()
-	_draw_data()
+	_draw_frame()
+	var axes:= _get_active_axes()
+	_update_axis_figure_sizes(axes)
+	_update_axis_ranges(axes)
+	_draw_chart_elements(axes)
 
 
 func add_data(data_x: Array[float], data_y: Array[float], title := "") -> void:
 	if title == "":
 		title = "Series %d" % [chart_data.size() + 1]
-	chart_data.append(ChartData.new(data_x, data_y, title))
+	var data_series := ChartData.new(data_x, data_y, title)
+	data_series.set_x_axis(x_axis_primary)
+	data_series.set_y_axis(y_axis_primary)
+	chart_data.append(data_series)
+
+
+func add_secondary_x_axis() -> void:
+	x_axis_secondary = AxisX.new()
+	x_axis_secondary.position = Axis.Position.TOP_RIGHT
+
+
+func add_secondary_y_axis() -> void:
+	y_axis_secondary = AxisY.new()
+	y_axis_secondary.position = Axis.Position.TOP_RIGHT
 
 
 func clear_chart() -> void:
 	chart_data.clear()
-
-
-func get_max_x() -> float:
-	var max_x := -INF
-	for data in chart_data:
-		max_x = maxf(max_x, data.x_data.max() as float)
-	return max_x
-
-
-func get_max_y() -> float:
-	var max_y := -INF
-	for data in chart_data:
-		max_y = maxf(max_y, data.y_data.max() as float)
-	return max_y
-
-
-func get_min_x() -> float:
-	var min_x := INF
-	for data in chart_data:
-		min_x = minf(min_x, data.x_data.min() as float)
-	return min_x
-
-
-func get_min_y() -> float:
-	var min_y := INF
-	for data in chart_data:
-		min_y = minf(min_y, data.y_data.min() as float)
-	return min_y
 
 
 func set_chart_data_color(data: ChartData, color: Color) -> void:
@@ -79,130 +93,194 @@ func set_chart_data_color(data: ChartData, color: Color) -> void:
 
 
 func _draw_background() -> void:
-	draw_rect(Rect2(0, 0, size.x, size.y), Color(0.2, 0.2, 0.2, 1))
+	draw_rect(Rect2(chart_area.position, chart_area.size), Color(0.2, 0.2, 0.2, 1))
 
 
-func _draw_data() -> void:
-	_reset_title_offset()
-	for i in chart_data.size():
-		var series := chart_data[i]
-		var x_data := series.x_data
-		var y_data := series.y_data
-		var points := PackedVector2Array()
-		var point_count := mini(x_data.size(), y_data.size())
-		var _discard := points.resize(point_count)
+func _draw_chart_elements(axes: Array[Axis]) -> void:
+	for axis in axes:
+		var offset := Vector2.ZERO
+		var direction := 1
+		var opposite_label := 0
+		var is_x_axis := false
 
-		var x_plot_margin := (x_plot_max - x_plot_min) * x_margin
-		var y_plot_margin := (y_plot_max - y_plot_min) * y_margin
-		for j in point_count:
-			points[j] = Vector2(
-				remap(x_data[j], x_plot_min - x_plot_margin, x_plot_max + x_plot_margin, 0, size.x),
-				remap(y_data[j], y_plot_min - y_plot_margin, y_plot_max + y_plot_margin, size.y, 0)
+		# Set drawing parameters
+		if axis is AxisX:
+			is_x_axis = true
+			if axis.draw_labels:
+				if axis.position == Axis.Position.BOTTOM_LEFT:
+					edge_bottom.custom_minimum_size = AXIS_PADDING * Vector2(0, 1)
+				else:
+					edge_top.custom_minimum_size = AXIS_PADDING * Vector2(0, 1)
+			if axis.position == Axis.Position.BOTTOM_LEFT:
+				offset = edge_bottom.position
+			else:
+				offset = edge_top.position
+				direction = -1
+		elif axis is AxisY:
+			if axis.draw_labels:
+				if axis.position == Axis.Position.BOTTOM_LEFT:
+					edge_left.custom_minimum_size = AXIS_PADDING * Vector2(1, 0)
+				else:
+					edge_right.custom_minimum_size = AXIS_PADDING * Vector2(1, 0)
+			if axis.position == Axis.Position.BOTTOM_LEFT:
+				offset = edge_left.position + edge_left.size * Vector2(1, 0)
+				direction = -1
+				opposite_label = 1
+			else:
+				offset = edge_right.position
+
+		# Ensure axis is up to date
+		var locator := axis.major_ticks.locator
+		if locator is LocatorMaxN:
+			(locator as LocatorMaxN).symmetric = axis.symmetric
+			var limits := (locator as LocatorMaxN).view_limits(axis.view_min, axis.view_max)
+			axis.set_view_limits(limits.x, limits.y)
+		var vmin := axis.view_min
+		var vmax := axis.view_max
+		var view_range := vmax - vmin
+		var margin := 0.5 * view_range * axis.margin
+		axis.set_view_limits(axis.view_min - margin, axis.view_max + margin)
+
+		var major_locations := axis.major_ticks.locator.get_tick_locations()
+		var minor_locations := axis.minor_ticks.locator.get_tick_locations()
+		minor_locations = minor_locations.filter(func(value: float) -> bool:
+			return not major_locations.has(value))
+		# Draw minor grid lines and ticks
+		for location in minor_locations:
+			var chart_min := 0.0 if is_x_axis else chart_area.size.y
+			var chart_max := chart_area.size.x if is_x_axis else 0.0
+			var axis_pos := remap(location, axis.view_min, axis.view_max, chart_min, chart_max)
+			var chart_limit := chart_area.size.x if is_x_axis else chart_area.size.y
+			if axis_pos < 0 or axis_pos > chart_limit:
+				continue
+			var axis_pos_vector := Vector2(axis_pos, 0) if is_x_axis else Vector2(0, axis_pos)
+			var pos := offset + axis_pos_vector
+			var line_start := Vector2(pos.x, chart_area.position.y) if is_x_axis \
+					else Vector2(chart_area.position.x, pos.y)
+			var line_direction := Vector2(0, 1) if is_x_axis else Vector2(1, 0)
+			var line_end := line_start + chart_area.size * line_direction
+			if axis.draw_grid:
+				draw_line(line_start, line_end, axis.minor_tick_color)
+			var tick_dimension := direction * tick_size * 2 / 3.0
+			var tick_vector := Vector2(0, tick_dimension) if is_x_axis else Vector2(tick_dimension, 0)
+			if axis.draw_ticks:
+				draw_line(pos, pos + tick_vector, axis.minor_tick_color)
+
+		# Draw major grid lines, ticks, and labels
+		var values := axis.major_ticks.locator.get_tick_values(axis.view_min, axis.view_max)
+		var labels := axis.major_ticks.formatter.format_ticks(values)
+		for i in major_locations.size():
+			var chart_min := 0.0 if is_x_axis else chart_area.size.y
+			var chart_max := chart_area.size.x if is_x_axis else 0.0
+			var axis_pos := remap(major_locations[i], axis.view_min, axis.view_max, chart_min, chart_max)
+			var chart_limit := chart_area.size.x if is_x_axis else chart_area.size.y
+			if axis_pos < 0 or axis_pos > chart_limit:
+				continue
+			var axis_pos_vector := Vector2(axis_pos, 0) if is_x_axis else Vector2(0, axis_pos)
+			var pos := offset + axis_pos_vector
+			var line_start := Vector2(pos.x, chart_area.position.y) if is_x_axis \
+					else Vector2(chart_area.position.x, pos.y)
+			var line_direction := Vector2(0, 1) if is_x_axis else Vector2(1, 0)
+			var line_end := line_start + chart_area.size * line_direction
+			if axis.draw_grid:
+				draw_line(line_start, line_end, axis.major_tick_color)
+			var tick_dimension := direction * tick_size
+			var tick_vector := Vector2(0, tick_dimension) if is_x_axis else Vector2(tick_dimension, 0)
+			if axis.draw_ticks:
+				draw_line(pos, pos + tick_vector, axis.major_tick_color)
+			if not axis.draw_labels:
+				continue
+			var text := TextLine.new()
+			var _discard := text.add_string(labels[i], font, font_size)
+			var label_offset := Vector2(
+				-text.get_line_width() / 2,
+				direction * (tick_size + tick_offset) - opposite_label * (
+						text.get_line_ascent() + text.get_line_descent())
+			) if is_x_axis else Vector2(
+				direction * (tick_offset + tick_size) - opposite_label * text.get_line_width(),
+				-text.get_line_ascent() / 2
 			)
-		var color_map: ColorMap = null
-		if (
-			not series.color_map and
-			(series.color_data.is_empty() or
-			series.color_data.all(func(value: float) -> bool: return is_zero_approx(value)))
-		):
-			color_map = ColorMap.create_from_color_samples([series_colors[i]], 1)
-			_discard = series.color_data.resize(series.y_data.size())
+			text.draw(get_canvas_item(), pos + label_offset)
+
+
+func _draw_frame() -> void:
+	draw_rect(Rect2(chart_area.position, chart_area.size), x_axis_primary.major_tick_color, false, 1)
+
+
+func _get_active_axes() -> Array[Axis]:
+	var axes: Array[Axis] = []
+	if x_axis_secondary:
+		axes.append(x_axis_secondary)
+	if y_axis_secondary:
+		axes.append(y_axis_secondary)
+	if x_axis_primary:
+		axes.append(x_axis_primary)
+	if y_axis_primary:
+		axes.append(y_axis_primary)
+	return axes
+
+
+func _update_axis_figure_sizes(axes: Array[Axis]) -> void:
+	for axis in axes:
+		if axis is AxisX:
+			axis.figure_size = chart_area.size.x
+		elif axis is AxisY:
+			axis.figure_size = chart_area.size.y
 		else:
-			color_map = series.color_map
-			if not color_map:
-				color_map = ColorMapMagma.new()
-		var normalized_color_data: Array[float] = []
-		_discard = normalized_color_data.resize(series.color_data.size())
-		for c in series.color_data.size():
-			normalized_color_data[c] = color_map.get_normalized_value(
-					series.color_data[c], series.color_min, series.color_max)
-		var colors: Array[Color] = []
-		colors.assign(normalized_color_data.map(color_map.get_color))
-		_draw_title(series, color_map)
-		match series.plot_type:
-			ChartData.PlotType.LINE:
-				draw_polyline_colors(points, colors, 1, true)
-			ChartData.PlotType.SCATTER:
-				for j in point_count:
-					draw_arc(points[j], 3, 0, 2 * PI, 9, colors[j], 0.5, true)
+			push_error("Axis is neither AxisX nor AxisY.")
+			axis.figure_size = maxf(chart_area.size.x, chart_area.size.y)
 
 
-func _draw_gridlines() -> void:
-	var vertical_lines := 6
-	var vertical_sublines := 2
-	var horizontal_lines := 3
-	var horizontal_sublines := 1
-	var main_color := Color(0.5, 0.5, 0.5, 1)
-	var sub_color := Color(0.5, 0.5, 0.5, 0.3)
-	for i in vertical_lines:
-		var line_pos_x := size.x * (x_margin + i / (vertical_lines as float - 1) * (1 - 2 * x_margin))
-		draw_line( Vector2(line_pos_x, 0), Vector2(line_pos_x, size.y), main_color)
-		if i == vertical_lines - 1:
-			break
-		var main_interval := size.x * (1 - 2 * x_margin) / (vertical_lines as float - 1)
-		for j in vertical_sublines:
-			var subline_pos_x := line_pos_x + main_interval * (j + 1) / (vertical_sublines as float + 1)
-			draw_line( Vector2(subline_pos_x, 0), Vector2(subline_pos_x, size.y), sub_color)
-	for i in horizontal_lines:
-		var line_pos_y := size.y * (y_margin + i / (horizontal_lines as float - 1) * (1 - 2 * y_margin))
-		draw_line( Vector2(0, line_pos_y), Vector2(size.x, line_pos_y), main_color)
-		if i == horizontal_lines - 1:
-			break
-		var main_interval := size.y * (1 - 2 * y_margin) / (horizontal_lines as float - 1)
-		for j in horizontal_sublines:
-			var subline_pos_y := line_pos_y + main_interval * (j + 1) / (horizontal_sublines as float + 1)
-			draw_line( Vector2(0, subline_pos_y), Vector2(size.x, subline_pos_y), sub_color)
-
-
-func _draw_title(series: ChartData, color_map: ColorMap) -> void:
-	if series.title == "Reference":
+func _update_axis_ranges(axes: Array[Axis]) -> void:
+	for series in chart_data:
+		if series.x_data.is_empty() or series.y_data.is_empty():
+			push_warning("There is no data to be drawn, skipping.")
+			continue
+		var x_axis := series.x_axis
+		var y_axis := series.y_axis
+		var x_limits := x_axis.major_ticks.locator.view_limits(series.x_data.min() as float,
+				series.x_data.max() as float)
+		x_axis.data_min = minf(x_axis.data_min, x_limits.x)
+		x_axis.data_max = maxf(x_axis.data_max, x_limits.y)
+		x_axis.set_view_limits(x_limits.x, x_limits.y)
+		var y_limits := y_axis.major_ticks.locator.view_limits(series.y_data.min() as float,
+				series.y_data.max() as float)
+		y_axis.data_min = minf(y_axis.data_min, y_limits.x)
+		y_axis.data_max = maxf(y_axis.data_max, y_limits.y)
+		y_axis.set_view_limits(y_limits.x, y_limits.y)
+	for axis in axes:
+		axis.update_view_interval()
+	if not equal_aspect:
 		return
-	var text := TextLine.new()
-	var _string := text.add_string(series.title, font, 12)
-	var color := color_map.get_color(0)
-	if not series.color_data.is_empty() and series.color_data.max() > 0:
-		var min_color_value := series.color_data.min() as float
-		var max_color_value := series.color_data.max() as float
-		var mean_color_value := (min_color_value + max_color_value) / 2.0
-		color = color_map.get_color(color_map.get_normalized_value(
-				mean_color_value, min_color_value, max_color_value))
-	text.draw(get_canvas_item(), title_offset, color)
-	title_offset.y += text.get_line_ascent() + text.get_line_descent()
-
-
-func _reset_title_offset() -> void:
-	title_offset = Vector2(5, 2)
-
-
-func _update_plot_extents() -> void:
-	var x_min := get_min_x()
-	var x_max := get_max_x()
-	var y_min := get_min_y()
-	var y_max := get_max_y()
-	var x_range := x_max - x_min
-	var y_range := y_max - y_min
-	if is_zero_approx(x_range):
-		x_min -= 1
-		x_max += 1
-	if is_zero_approx(y_range):
-		y_min -= 1
-		y_max += 1
-	if equal_aspect:
-		var chart_aspect := size.x / size.y
-		var bounded_range := x_range if x_range / size.x > y_range / size.y else y_range
-		var x_equal_range := bounded_range * (1.0 if bounded_range == x_range else chart_aspect)
-		var y_equal_range := bounded_range * (1.0 if bounded_range == y_range else 1 / chart_aspect)
-		x_plot_min = x_min - (x_equal_range - x_range) / 2.0
-		x_plot_max = x_max + (x_equal_range - x_range) / 2.0
-		y_plot_min = y_min - (y_equal_range - y_range) / 2.0
-		y_plot_max = y_max + (y_equal_range - y_range) / 2.0
-	else:
-		x_plot_max = x_max
-		x_plot_min = x_min
-		if zero_centered:
-			var y_abs := maxf(absf(y_max), absf(y_min))
-			y_plot_max = y_abs
-			y_plot_min = -y_abs
+	# FIXME: This does not properly transform secondary axes, simply adding the
+	# additional range skews the data. This is left as is for now as the intended
+	# use (track map) shouldn't require secondary axes anyway.
+	var chart_aspect := chart_area.size.x / chart_area.size.y
+	var ranges: Array[float] = []
+	var bounded_ranges: Array[float] = []
+	var max_x_range := 0.0
+	var max_y_range := 0.0
+	for axis in axes:
+		ranges.append(axis.view_max - axis.view_min)
+		if axis is AxisX:
+			bounded_ranges.append(ranges[-1] / chart_area.size.x)
+			max_x_range = maxf(max_x_range, ranges[-1])
+		elif axis is AxisY:
+			bounded_ranges.append(ranges[-1] / chart_area.size.y)
+			max_y_range = maxf(max_y_range, ranges[-1])
+	var bounded_range := ranges[bounded_ranges.find(bounded_ranges.max())]
+	var bounded_is_x := false
+	if axes[ranges.find(bounded_range)] is AxisX:
+		bounded_is_x = true
+	for i in axes.size():
+		var axis := axes[i]
+		var equal_range := bounded_range
+		var max_range := 0.0
+		if axis is AxisX:
+			equal_range *= 1.0 if bounded_is_x else chart_aspect
+			max_range = max_x_range
 		else:
-			y_plot_max = y_max
-			y_plot_min = y_min
+			equal_range *= 1.0 if not bounded_is_x else (1 / chart_aspect)
+			max_range = max_y_range
+		var half_range := (equal_range - max_range) / 2.0
+		axis.set_view_limits(axis.view_min - half_range, axis.view_max + half_range)

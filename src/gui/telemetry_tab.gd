@@ -27,30 +27,42 @@ func draw_charts() -> void:
 		var child := scroll_container.get_children()[-1]
 		scroll_container.remove_child(child)
 		child.queue_free()
+	await get_tree().process_frame
 	var vbox := VBoxContainer.new()
 	vbox.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	scroll_container.add_child(vbox)
 	var chart_speed := Chart.new()
 	vbox.add_child(chart_speed)
-	chart_speed.custom_minimum_size = Vector2(400, 200)
+	chart_speed.chart_area.custom_minimum_size = Vector2(400, 200)
+	chart_speed.x_axis_primary.margin = 0
+	chart_speed.x_axis_primary.draw_labels = false
 	var chart_steer := Chart.new()
 	vbox.add_child(chart_steer)
-	chart_steer.custom_minimum_size = Vector2(400, 100)
+	chart_steer.chart_area.custom_minimum_size = Vector2(400, 100)
+	chart_steer.x_axis_primary.margin = 0
+	chart_steer.x_axis_primary.draw_labels = false
 	var chart_rpm := Chart.new()
 	vbox.add_child(chart_rpm)
-	chart_rpm.custom_minimum_size = Vector2(400, 100)
+	chart_rpm.chart_area.custom_minimum_size = Vector2(400, 100)
+	chart_rpm.x_axis_primary.margin = 0
+	chart_rpm.x_axis_primary.draw_labels = false
 	var chart_gear := Chart.new()
 	vbox.add_child(chart_gear)
-	chart_gear.custom_minimum_size = Vector2(400, 100)
+	chart_gear.chart_area.custom_minimum_size = Vector2(400, 100)
+	chart_gear.x_axis_primary.margin = 0
+	chart_gear.x_axis_primary.draw_labels = false
 	var chart_throttle := Chart.new()
 	vbox.add_child(chart_throttle)
-	chart_throttle.custom_minimum_size = Vector2(400, 100)
+	chart_throttle.chart_area.custom_minimum_size = Vector2(400, 100)
+	chart_throttle.x_axis_primary.margin = 0
+	chart_throttle.x_axis_primary.draw_labels = false
 	var chart_brake := Chart.new()
 	vbox.add_child(chart_brake)
-	chart_brake.custom_minimum_size = Vector2(400, 100)
+	chart_brake.chart_area.custom_minimum_size = Vector2(400, 100)
+	chart_brake.x_axis_primary.margin = 0
 	var chart_path := Chart.new()
 	vbox.add_child(chart_path)
-	chart_path.custom_minimum_size = Vector2(500, 500)
+	chart_path.chart_area.custom_minimum_size = Vector2(500, 500)
 	if reference_lap:
 		chart_speed.add_data(get_data(reference_lap, "auto_distance") as Array[float],
 				get_data(reference_lap, "speed") as Array[float], "Reference")
@@ -67,7 +79,7 @@ func draw_charts() -> void:
 		chart_steer.add_data(get_data(main_lap, "auto_distance") as Array[float],
 				get_data(main_lap, "steer") as Array[float], "Steering [°]")
 		chart_steer.set_chart_data_color(chart_steer.chart_data[-1], Color.DEEP_SKY_BLUE)
-	chart_steer.zero_centered = true
+	chart_steer.y_axis_primary.symmetric = true
 	if reference_lap:
 		chart_rpm.add_data(get_data(reference_lap, "auto_distance") as Array[float],
 				get_data(reference_lap, "rpm") as Array[float], "Reference")
@@ -92,6 +104,9 @@ func draw_charts() -> void:
 		chart_throttle.add_data(get_data(main_lap, "auto_distance") as Array[float],
 				get_data(main_lap, "throttle") as Array[float], "Throttle [%]")
 		chart_throttle.set_chart_data_color(chart_throttle.chart_data[-1], Color.LIME_GREEN)
+		chart_throttle.y_axis_primary.data_min = -100 if chart_throttle.chart_data[-1].y_data.any(
+				func(value: float) -> bool: return value < 0) else 0
+		chart_throttle.y_axis_primary.data_max = 100
 	if reference_lap:
 		chart_brake.add_data(get_data(reference_lap, "auto_distance") as Array[float],
 				get_data(reference_lap, "brake") as Array[float], "Reference")
@@ -100,6 +115,8 @@ func draw_charts() -> void:
 		chart_brake.add_data(get_data(main_lap, "auto_distance") as Array[float],
 				get_data(main_lap, "brake") as Array[float], "Brake [%]")
 		chart_brake.set_chart_data_color(chart_brake.chart_data[-1], Color.CRIMSON)
+		chart_brake.y_axis_primary.data_min = 0
+		chart_brake.y_axis_primary.data_max = 100
 	if reference_lap:
 		chart_path.add_data(get_data(reference_lap, "x_pos") as Array[float],
 				get_data(reference_lap, "y_pos") as Array[float], "Reference")
@@ -118,15 +135,18 @@ func draw_charts() -> void:
 		chart_path.chart_data[-1].title = "Speed [km/h]"
 	chart_path.equal_aspect = true
 	chart_path.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN
+	await get_tree().process_frame
 	chart_speed.queue_redraw()
 	chart_steer.queue_redraw()
 	chart_rpm.queue_redraw()
 	chart_gear.queue_redraw()
 	chart_path.queue_redraw()
+	chart_throttle.queue_redraw()
+	chart_brake.queue_redraw()
 	if main_lap:
 		var power_chart := Chart.new()
 		vbox.add_child(power_chart)
-		power_chart.custom_minimum_size = Vector2(500, 300)
+		power_chart.chart_area.custom_minimum_size = Vector2(500, 300)
 		var power_data: Array[float] = []
 		var rpm_data := get_data(main_lap, "rpm") as Array[float]
 		var torque_data := get_data(main_lap, "torque") as Array[float]
@@ -148,6 +168,7 @@ func draw_charts() -> void:
 		power_chart.add_data(rpms, torques, "Torque [N.m]")
 		power_chart.add_data(rpms, powers, "Power [kW]")
 		power_chart.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN
+		await get_tree().process_frame
 		power_chart.queue_redraw()
 	if main_lap:
 		var rpm_hbox := HBoxContainer.new()
@@ -161,7 +182,7 @@ func draw_charts() -> void:
 		rpm_vbox_right.size_flags_stretch_ratio = 2
 		var chart_rpm_g := Chart.new()
 		rpm_vbox_right.add_child(chart_rpm_g)
-		chart_rpm_g.custom_minimum_size = Vector2(400, 300)
+		chart_rpm_g.chart_area.custom_minimum_size = Vector2(400, 300)
 		var speed_data := get_data(main_lap, "speed") as Array[float]
 		var rpm_data := get_data(main_lap, "rpm") as Array[float]
 		var g_data := get_data(main_lap, "g_lon") as Array[float]
@@ -185,16 +206,16 @@ func draw_charts() -> void:
 		chart_rpm_g.chart_data[-1].plot_type = ChartData.PlotType.SCATTER
 		chart_rpm_g.chart_data[-1].color_data = gear_filtered
 		chart_rpm_g.chart_data[-1].color_map = ColorMapTurbo.new()
-		chart_rpm_g.queue_redraw()
 		var chart_glon := Chart.new()
 		rpm_vbox_right.add_child(chart_glon)
-		chart_glon.custom_minimum_size = Vector2(400, 300)
+		chart_glon.chart_area.custom_minimum_size = Vector2(400, 300)
 		chart_glon.add_data(speed_filtered, g_filtered, "Lon. G vs Speed [G]")
 		chart_glon.chart_data[-1].plot_type = ChartData.PlotType.SCATTER
 		chart_glon.chart_data[-1].color_data = gear_filtered
 		chart_glon.chart_data[-1].color_map = ColorMapTurbo.new()
+		await get_tree().process_frame
+		chart_rpm_g.queue_redraw()
 		chart_glon.queue_redraw()
-	await get_tree().process_frame
 
 
 func get_data(lap: LapData, data_type: String) -> Array[float]:
@@ -216,7 +237,8 @@ func get_data(lap: LapData, data_type: String) -> Array[float]:
 			else:
 				array.assign(lap.car_data.map(func(data: CarData) -> float: return data.lap_distance))
 		"speed":
-			array.assign(lap.car_data.map(func(data: CarData) -> float: return data.speed))
+			array.assign(lap.car_data.map(func(data: CarData) -> float: return GISUtils.convert_speed(
+					data.speed, GISUtils.SpeedUnit.METER_PER_SECOND, GISUtils.SpeedUnit.KPH)))
 		"steer":
 			array.assign(lap.car_data.map(func(data: CarData) -> float: return data.steering))
 		"gear":
@@ -228,9 +250,9 @@ func get_data(lap: LapData, data_type: String) -> Array[float]:
 		"y_pos":
 			array.assign(lap.car_data.map(func(data: CarData) -> float: return data.position.y))
 		"throttle":
-			array.assign(lap.car_data.map(func(data: CarData) -> float: return data.throttle))
+			array.assign(lap.car_data.map(func(data: CarData) -> float: return 100 * data.throttle))
 		"brake":
-			array.assign(lap.car_data.map(func(data: CarData) -> float: return data.brake))
+			array.assign(lap.car_data.map(func(data: CarData) -> float: return 100 * data.brake))
 		"torque":
 			array.assign(lap.car_data.map(func(data: CarData) -> float: return data.max_torque_at_rpm))
 		"g_lon":
