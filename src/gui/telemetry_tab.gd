@@ -33,21 +33,32 @@ func draw_charts() -> void:
 	var chart_speed := Chart.new()
 	vbox.add_child(chart_speed)
 	chart_speed.chart_area.custom_minimum_size = Vector2(400, 200)
+	chart_speed.x_axis_primary.margin = 0
+	chart_speed.x_axis_primary.draw_labels = false
 	var chart_steer := Chart.new()
 	vbox.add_child(chart_steer)
 	chart_steer.chart_area.custom_minimum_size = Vector2(400, 100)
+	chart_steer.x_axis_primary.margin = 0
+	chart_steer.x_axis_primary.draw_labels = false
 	var chart_rpm := Chart.new()
 	vbox.add_child(chart_rpm)
 	chart_rpm.chart_area.custom_minimum_size = Vector2(400, 100)
+	chart_rpm.x_axis_primary.margin = 0
+	chart_rpm.x_axis_primary.draw_labels = false
 	var chart_gear := Chart.new()
 	vbox.add_child(chart_gear)
 	chart_gear.chart_area.custom_minimum_size = Vector2(400, 100)
+	chart_gear.x_axis_primary.margin = 0
+	chart_gear.x_axis_primary.draw_labels = false
 	var chart_throttle := Chart.new()
 	vbox.add_child(chart_throttle)
 	chart_throttle.chart_area.custom_minimum_size = Vector2(400, 100)
+	chart_throttle.x_axis_primary.margin = 0
+	chart_throttle.x_axis_primary.draw_labels = false
 	var chart_brake := Chart.new()
 	vbox.add_child(chart_brake)
 	chart_brake.chart_area.custom_minimum_size = Vector2(400, 100)
+	chart_brake.x_axis_primary.margin = 0
 	var chart_path := Chart.new()
 	vbox.add_child(chart_path)
 	chart_path.chart_area.custom_minimum_size = Vector2(500, 500)

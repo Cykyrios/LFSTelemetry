@@ -233,6 +233,9 @@ func _update_axis_figure_sizes(axes: Array[Axis]) -> void:
 
 func _update_axis_ranges(axes: Array[Axis]) -> void:
 	for series in chart_data:
+		if series.x_data.is_empty() or series.y_data.is_empty():
+			push_warning("There is no data to be drawn, skipping.")
+			continue
 		var x_axis := series.x_axis
 		var y_axis := series.y_axis
 		var x_limits := x_axis.major_ticks.locator.view_limits(series.x_data.min() as float,
