@@ -62,7 +62,7 @@ func _draw() -> void:
 		var y_axis := series.y_axis
 		var offset := Vector2.ZERO
 		var tick_offset := 3
-		var tick_size := 4
+		var tick_size := 6
 		var direction := 1
 		var opposite_label := 0
 		var font_size := 12
