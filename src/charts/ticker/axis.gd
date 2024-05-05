@@ -24,7 +24,7 @@ var figure_size := 0.0
 var axis_padding := Vector2.ZERO
 
 var major_tick_color := Color(0.5, 0.5, 0.5, 1)
-var minor_tick_color := Color(0.5, 0.5, 0.5, 0.3)
+var minor_tick_color := Color(0.3, 0.3, 0.3, 1)
 
 
 func _init() -> void:
@@ -38,7 +38,7 @@ func _init() -> void:
 	var minor_formatter := FormatterScalar.new()
 	minor_formatter.scientific = false
 	minor_ticks.formatter = minor_formatter
-	minor_ticks.locator = LocatorAuto.new()
+	minor_ticks.locator = LocatorAutoMinor.new()
 	minor_ticks.set_axis(self)
 
 	var text := TextLine.new()

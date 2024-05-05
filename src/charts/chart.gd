@@ -81,6 +81,19 @@ func _draw() -> void:
 			else:
 				offset = edge_top.position
 				direction = -1
+			var minor_locations := x_axis.minor_ticks.locator.get_tick_locations()
+			minor_locations = minor_locations.filter(func(value: float) -> bool:
+				return not locations.has(value))
+			for location in minor_locations:
+				var axis_pos := remap(location, x_axis.view_min, x_axis.view_max,
+						0, chart_area.size.x)
+				if axis_pos < 0 or axis_pos > chart_area.size.x:
+					continue
+				var pos := Vector2(offset.x + axis_pos, offset.y)
+				draw_line(Vector2(pos.x, chart_area.position.y),
+						Vector2(pos.x, chart_area.position.y + chart_area.size.y),
+						x_axis.minor_tick_color)
+				draw_line(pos, pos + Vector2(0, direction * tick_size / 2.0), x_axis.minor_tick_color)
 			for i in labels.size():
 				var axis_pos := remap(locations[i], x_axis.view_min, x_axis.view_max,
 						0, chart_area.size.x)
@@ -115,6 +128,19 @@ func _draw() -> void:
 				opposite_label = 1
 			else:
 				offset = edge_right.position
+			var minor_locations := y_axis.minor_ticks.locator.get_tick_locations()
+			minor_locations = minor_locations.filter(func(value: float) -> bool:
+				return not locations.has(value))
+			for location in minor_locations:
+				var axis_pos := remap(location, y_axis.view_min, y_axis.view_max,
+						chart_area.size.y, 0)
+				if axis_pos < 0 or axis_pos > chart_area.size.y:
+					continue
+				var pos := Vector2(offset.x, offset.y + axis_pos)
+				draw_line(Vector2(chart_area.position.x, pos.y),
+						Vector2(chart_area.position.x + chart_area.size.x, pos.y),
+						y_axis.minor_tick_color)
+				draw_line(pos, pos + Vector2(direction * tick_size / 2.0, 0), y_axis.minor_tick_color)
 			for i in labels.size():
 				var axis_pos := remap(locations[i], y_axis.view_min, y_axis.view_max,
 						chart_area.size.y, 0)
