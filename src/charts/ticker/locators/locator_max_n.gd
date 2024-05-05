@@ -2,6 +2,8 @@ class_name LocatorMaxN
 extends Locator
 
 
+const MAX_INTERVALS := 20
+
 var intervals := 10
 var auto_intervals := false
 var steps: Array[float] = [1, 2, 2.5, 3, 4, 5, 10]
@@ -63,9 +65,9 @@ func _raw_ticks(vmin: float, vmax: float) -> Array[float]:
 	var _intervals := intervals
 	if auto_intervals:
 		if axis:
-			_intervals = clampi(axis.get_tick_space(), maxi(1, min_ticks - 1), 9)
+			_intervals = clampi(axis.get_tick_space(), maxi(1, min_ticks - 1), MAX_INTERVALS)
 		else:
-			_intervals = 9
+			_intervals = MAX_INTERVALS
 	var scale := scale_range(vmin, vmax, _intervals)
 	var _steps: Array[float] = []
 	_steps.assign(steps.map(func(value: float) -> float: return value * scale))
