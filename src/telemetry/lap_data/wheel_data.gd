@@ -23,6 +23,8 @@ var slip_fraction := 0.0
 var slip_ratio := 0.0
 var tangent_slip_angle := 0.0
 
+var suspension_speed := 0.0
+
 
 func fill_data_from_outsim_wheel(outsim_wheel: OutSimWheel) -> void:
 	suspension_deflection = outsim_wheel.susp_deflect

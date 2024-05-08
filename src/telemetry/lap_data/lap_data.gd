@@ -29,6 +29,21 @@ var outgauge_data: Array[OutGaugePacket] = []
 func compute_derived_data() -> void:
 	for data in car_data:
 		data.compute_derived_values()
+	for i in car_data.size():
+		if i == 0:
+			continue
+		var current_car := car_data[i]
+		var previous_car := car_data[i - 1]
+		var dt := current_car.time - previous_car.time
+		for j in WheelData.WheelIndex.size():
+			var current_wheel := current_car.wheel_data[j]
+			var previous_wheel := previous_car.wheel_data[j]
+			var suspension_delta := current_wheel.suspension_deflection \
+					- previous_wheel.suspension_deflection
+			current_wheel.suspension_speed = suspension_delta / dt
+	# Fill first data point with zeros or copy second data point
+	for j in WheelData.WheelIndex.size():
+		car_data[0].wheel_data[j] = car_data[1].wheel_data[j]
 
 
 func fill_car_data() -> void:
