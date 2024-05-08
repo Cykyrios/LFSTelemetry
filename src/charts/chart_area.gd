@@ -63,6 +63,13 @@ func _draw_data() -> void:
 			ChartData.PlotType.SCATTER:
 				for j in point_count:
 					draw_arc(points[j], 3, 0, 2 * PI, 7, colors[j])
+			ChartData.PlotType.BAR:
+				var zero := remap(0, y_axis.view_min, y_axis.view_max, size.y, 0)
+				for j in point_count:
+					var width := (points[j + 1] - points[j]).x if j == 0 else (points[j] - points[j - 1]).x
+					var rect := Rect2(points[j] - Vector2(width / 2, 0), Vector2(width, zero - points[j].y))
+					draw_rect(rect, colors[j])
+					draw_rect(rect, colors[j].lightened(0.5), false)
 
 
 func _draw_title(series: ChartData, color_map: ColorMap) -> void:

@@ -2,7 +2,7 @@ class_name ChartData
 extends RefCounted
 
 
-enum PlotType {LINE, SCATTER}
+enum PlotType {LINE, SCATTER, BAR}
 
 var title := ""
 var x_data: Array[float] = []:
