@@ -31,7 +31,7 @@ var indexed_distance := 0.0
 
 var wheel_data: Array[WheelData] = []
 
-var speed := 0.0  ## Magnitude of velocity, km/h
+var speed := 0.0  ## Magnitude of velocity
 var g_forces := Vector3.ZERO  ## Right, Forward, Up
 var local_pitch := 0.0
 var local_roll := 0.0
