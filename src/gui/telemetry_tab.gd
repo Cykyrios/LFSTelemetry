@@ -222,6 +222,80 @@ func draw_charts() -> void:
 		await get_tree().process_frame
 		chart_rpm_g.queue_redraw()
 		chart_glon.queue_redraw()
+	if main_lap:
+		var suspension_grid := GridContainer.new()
+		suspension_grid.columns = 2
+		vbox.add_child(suspension_grid)
+		var chart_suspension_fl := Chart.new()
+		suspension_grid.add_child(chart_suspension_fl)
+		chart_suspension_fl.chart_area.custom_minimum_size = Vector2(400, 200)
+		chart_suspension_fl.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		var chart_suspension_fr := Chart.new()
+		suspension_grid.add_child(chart_suspension_fr)
+		chart_suspension_fr.chart_area.custom_minimum_size = Vector2(400, 200)
+		chart_suspension_fr.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		var chart_suspension_rl := Chart.new()
+		suspension_grid.add_child(chart_suspension_rl)
+		chart_suspension_rl.chart_area.custom_minimum_size = Vector2(400, 200)
+		chart_suspension_rl.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		var chart_suspension_rr := Chart.new()
+		suspension_grid.add_child(chart_suspension_rr)
+		chart_suspension_rr.chart_area.custom_minimum_size = Vector2(400, 200)
+		chart_suspension_rr.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		var suspension_speed_rl := get_data(main_lap, "suspension_speed_rl") as Array[float]
+		var suspension_speed_rr := get_data(main_lap, "suspension_speed_rr") as Array[float]
+		var suspension_speed_fl := get_data(main_lap, "suspension_speed_fl") as Array[float]
+		var suspension_speed_fr := get_data(main_lap, "suspension_speed_fr") as Array[float]
+		var bin_width := 10.0
+		var max_speed := 200.0
+		var bin_count := 2 * int(max_speed / bin_width) + 2
+		var min_bin_edge := -(bin_count - 1) * bin_width / 2.0
+		var bins: Array[float] = []
+		var _discard := bins.resize(bin_count)
+		for i in bin_count:
+			bins[i] = min_bin_edge + i * bin_width
+		var histogram_rl := get_histogram(suspension_speed_rl, bins).slice(1, bins.size())
+		var histogram_rr := get_histogram(suspension_speed_rr, bins).slice(1, bins.size())
+		var histogram_fl := get_histogram(suspension_speed_fl, bins).slice(1, bins.size())
+		var histogram_fr := get_histogram(suspension_speed_fr, bins).slice(1, bins.size())
+		bins.assign(bins.map(func(value: float) -> float: return value + bin_width / 2))
+		var colors := ColorMapD3Category10.new().colors
+		chart_suspension_fl.add_data(bins, histogram_fl, "Damper hist. FL")
+		chart_suspension_fl.chart_data[-1].plot_type = ChartData.PlotType.BAR
+		chart_suspension_fl.set_chart_data_color(chart_suspension_fl.chart_data[-1], colors[2])
+		chart_suspension_fr.add_data(bins, histogram_fr, "Damper hist. FR")
+		chart_suspension_fr.chart_data[-1].plot_type = ChartData.PlotType.BAR
+		chart_suspension_fr.set_chart_data_color(chart_suspension_fr.chart_data[-1], colors[3])
+		chart_suspension_rl.add_data(bins, histogram_rl, "Damper hist. RL")
+		chart_suspension_rl.chart_data[-1].plot_type = ChartData.PlotType.BAR
+		chart_suspension_rl.set_chart_data_color(chart_suspension_rl.chart_data[-1], colors[0])
+		chart_suspension_rr.add_data(bins, histogram_rr, "Damper hist. RR")
+		chart_suspension_rr.chart_data[-1].plot_type = ChartData.PlotType.BAR
+		chart_suspension_rr.set_chart_data_color(chart_suspension_rr.chart_data[-1], colors[1])
+		await get_tree().process_frame
+		chart_suspension_fl.queue_redraw()
+		chart_suspension_fr.queue_redraw()
+		chart_suspension_rl.queue_redraw()
+		chart_suspension_rr.queue_redraw()
+
+
+func get_histogram(data: Array[float], bins: Array[float]) -> Array[float]:
+	var bin_count := bins.size()
+	var histogram: Array[float] = []
+	var _discard := histogram.resize(bin_count + 1)
+	for value in data:
+		var value_found := false
+		for i in bin_count:
+			if value < bins[i]:
+				value_found = true
+				histogram[i] += 1
+				break
+		if value_found:
+			continue
+		histogram[-1] += 1
+	var point_count := data.size()
+	histogram.assign(histogram.map(func(value: float) -> float: return 100 * value / point_count))
+	return histogram
 
 
 func get_data(lap: LapData, data_type: String) -> Array[float]:
@@ -265,6 +339,18 @@ func get_data(lap: LapData, data_type: String) -> Array[float]:
 			array.assign(lap.car_data.map(func(data: CarData) -> float: return data.g_forces.y))
 		"g_lat":
 			array.assign(lap.car_data.map(func(data: CarData) -> float: return data.g_forces.x))
+		"suspension_speed_rl":
+			array.assign(lap.car_data.map(func(data: CarData) -> float:
+				return 1000 * data.wheel_data[WheelData.WheelIndex.REAR_LEFT].suspension_speed))
+		"suspension_speed_rr":
+			array.assign(lap.car_data.map(func(data: CarData) -> float:
+				return 1000 * data.wheel_data[WheelData.WheelIndex.REAR_RIGHT].suspension_speed))
+		"suspension_speed_fl":
+			array.assign(lap.car_data.map(func(data: CarData) -> float:
+				return 1000 * data.wheel_data[WheelData.WheelIndex.FRONT_LEFT].suspension_speed))
+		"suspension_speed_fr":
+			array.assign(lap.car_data.map(func(data: CarData) -> float:
+				return 1000 * data.wheel_data[WheelData.WheelIndex.FRONT_RIGHT].suspension_speed))
 	return array
 
 
