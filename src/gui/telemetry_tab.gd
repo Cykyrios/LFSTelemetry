@@ -63,56 +63,62 @@ func draw_charts() -> void:
 	var chart_path := Chart.new()
 	vbox.add_child(chart_path)
 	chart_path.chart_area.custom_minimum_size = Vector2(500, 500)
+	var main_lap_distance: Array[float] = []
+	if main_lap:
+		main_lap_distance = get_data(main_lap, "auto_distance") as Array[float]
+	var reference_lap_distance: Array[float] = []
 	if reference_lap:
-		chart_speed.add_data(get_data(reference_lap, "auto_distance") as Array[float],
+		reference_lap_distance = get_data(reference_lap, "auto_distance") as Array[float]
+	if reference_lap:
+		chart_speed.add_data(reference_lap_distance,
 				get_data(reference_lap, "speed") as Array[float], "Reference")
 		chart_speed.set_chart_data_color(chart_speed.chart_data[-1], Color.GRAY)
 	if main_lap:
-		chart_speed.add_data(get_data(main_lap, "auto_distance") as Array[float],
+		chart_speed.add_data(main_lap_distance,
 				get_data(main_lap, "speed") as Array[float], "Speed [km/h]")
 		chart_speed.set_chart_data_color(chart_speed.chart_data[-1], Color.LIGHT_GREEN)
 	if reference_lap:
-		chart_steer.add_data(get_data(reference_lap, "auto_distance") as Array[float],
+		chart_steer.add_data(reference_lap_distance,
 				get_data(reference_lap, "steer") as Array[float], "Reference")
 		chart_steer.set_chart_data_color(chart_steer.chart_data[-1], Color.GRAY)
 	if main_lap:
-		chart_steer.add_data(get_data(main_lap, "auto_distance") as Array[float],
+		chart_steer.add_data(main_lap_distance,
 				get_data(main_lap, "steer") as Array[float], "Steering [°]")
 		chart_steer.set_chart_data_color(chart_steer.chart_data[-1], Color.DEEP_SKY_BLUE)
 	chart_steer.y_axis_primary.symmetric = true
 	if reference_lap:
-		chart_rpm.add_data(get_data(reference_lap, "auto_distance") as Array[float],
+		chart_rpm.add_data(reference_lap_distance,
 				get_data(reference_lap, "rpm") as Array[float], "Reference")
 		chart_rpm.set_chart_data_color(chart_rpm.chart_data[-1], Color.GRAY)
 	if main_lap:
-		chart_rpm.add_data(get_data(main_lap, "auto_distance") as Array[float],
+		chart_rpm.add_data(main_lap_distance,
 				get_data(main_lap, "rpm") as Array[float], "RPM")
 		chart_rpm.set_chart_data_color(chart_rpm.chart_data[-1], Color.VIOLET)
 	if reference_lap:
-		chart_gear.add_data(get_data(reference_lap, "auto_distance") as Array[float],
+		chart_gear.add_data(reference_lap_distance,
 				get_data(reference_lap, "gear") as Array[float], "Reference")
 		chart_gear.set_chart_data_color(chart_gear.chart_data[-1], Color.GRAY)
 	if main_lap:
-		chart_gear.add_data(get_data(main_lap, "auto_distance") as Array[float],
+		chart_gear.add_data(main_lap_distance,
 				get_data(main_lap, "gear") as Array[float], "Gear")
 		chart_gear.set_chart_data_color(chart_gear.chart_data[-1], Color.GOLD)
 	if reference_lap:
-		chart_throttle.add_data(get_data(reference_lap, "auto_distance") as Array[float],
+		chart_throttle.add_data(reference_lap_distance,
 				get_data(reference_lap, "throttle") as Array[float], "Reference")
 		chart_throttle.set_chart_data_color(chart_throttle.chart_data[-1], Color.GRAY)
 	if main_lap:
-		chart_throttle.add_data(get_data(main_lap, "auto_distance") as Array[float],
+		chart_throttle.add_data(main_lap_distance,
 				get_data(main_lap, "throttle") as Array[float], "Throttle [%]")
 		chart_throttle.set_chart_data_color(chart_throttle.chart_data[-1], Color.LIME_GREEN)
 		chart_throttle.y_axis_primary.data_min = -100 if chart_throttle.chart_data[-1].y_data.any(
 				func(value: float) -> bool: return value < 0) else 0
 		chart_throttle.y_axis_primary.data_max = 100
 	if reference_lap:
-		chart_brake.add_data(get_data(reference_lap, "auto_distance") as Array[float],
+		chart_brake.add_data(reference_lap_distance,
 				get_data(reference_lap, "brake") as Array[float], "Reference")
 		chart_brake.set_chart_data_color(chart_brake.chart_data[-1], Color.GRAY)
 	if main_lap:
-		chart_brake.add_data(get_data(main_lap, "auto_distance") as Array[float],
+		chart_brake.add_data(main_lap_distance,
 				get_data(main_lap, "brake") as Array[float], "Brake [%]")
 		chart_brake.set_chart_data_color(chart_brake.chart_data[-1], Color.CRIMSON)
 		chart_brake.y_axis_primary.data_min = 0
