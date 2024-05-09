@@ -242,34 +242,28 @@ func draw_charts() -> void:
 		suspension_grid.add_child(chart_suspension_rr)
 		chart_suspension_rr.chart_area.custom_minimum_size = Vector2(400, 200)
 		chart_suspension_rr.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-		var suspension_speed_rl := get_data(main_lap, "suspension_speed_rl") as Array[float]
-		var suspension_speed_rr := get_data(main_lap, "suspension_speed_rr") as Array[float]
-		var suspension_speed_fl := get_data(main_lap, "suspension_speed_fl") as Array[float]
-		var suspension_speed_fr := get_data(main_lap, "suspension_speed_fr") as Array[float]
+		var speed_rl := get_data(main_lap, "suspension_speed_rl") as Array[float]
+		var speed_rr := get_data(main_lap, "suspension_speed_rr") as Array[float]
+		var speed_fl := get_data(main_lap, "suspension_speed_fl") as Array[float]
+		var speed_fr := get_data(main_lap, "suspension_speed_fr") as Array[float]
 		var bin_width := 10.0
 		var max_speed := 200.0
-		var bin_count := 2 * int(max_speed / bin_width) + 2
-		var min_bin_edge := -(bin_count - 1) * bin_width / 2.0
-		var bins: Array[float] = []
-		var _discard := bins.resize(bin_count)
-		for i in bin_count:
-			bins[i] = min_bin_edge + i * bin_width
-		var histogram_rl := get_histogram(suspension_speed_rl, bins).slice(1, bins.size())
-		var histogram_rr := get_histogram(suspension_speed_rr, bins).slice(1, bins.size())
-		var histogram_fl := get_histogram(suspension_speed_fl, bins).slice(1, bins.size())
-		var histogram_fr := get_histogram(suspension_speed_fr, bins).slice(1, bins.size())
-		bins.assign(bins.map(func(value: float) -> float: return value + bin_width / 2))
+		var slow_speed := 25.0
+		var histogram_rl := DamperHistogram.new(speed_rl, bin_width, max_speed, slow_speed)
+		var histogram_rr := DamperHistogram.new(speed_rr, bin_width, max_speed, slow_speed)
+		var histogram_fl := DamperHistogram.new(speed_fl, bin_width, max_speed, slow_speed)
+		var histogram_fr := DamperHistogram.new(speed_fr, bin_width, max_speed, slow_speed)
 		var colors := ColorMapD3Category10.new().colors
-		chart_suspension_fl.add_data(bins, histogram_fl, "Damper hist. FL")
+		chart_suspension_fl.add_data(histogram_fl.bins, histogram_fl.data, "Damper vel. FL")
 		chart_suspension_fl.chart_data[-1].plot_type = ChartData.PlotType.BAR
 		chart_suspension_fl.set_chart_data_color(chart_suspension_fl.chart_data[-1], colors[2])
-		chart_suspension_fr.add_data(bins, histogram_fr, "Damper hist. FR")
+		chart_suspension_fr.add_data(histogram_fr.bins, histogram_fr.data, "Damper vel. FR")
 		chart_suspension_fr.chart_data[-1].plot_type = ChartData.PlotType.BAR
 		chart_suspension_fr.set_chart_data_color(chart_suspension_fr.chart_data[-1], colors[3])
-		chart_suspension_rl.add_data(bins, histogram_rl, "Damper hist. RL")
+		chart_suspension_rl.add_data(histogram_rl.bins, histogram_rl.data, "Damper vel. RL")
 		chart_suspension_rl.chart_data[-1].plot_type = ChartData.PlotType.BAR
 		chart_suspension_rl.set_chart_data_color(chart_suspension_rl.chart_data[-1], colors[0])
-		chart_suspension_rr.add_data(bins, histogram_rr, "Damper hist. RR")
+		chart_suspension_rr.add_data(histogram_rr.bins, histogram_rr.data, "Damper vel. RR")
 		chart_suspension_rr.chart_data[-1].plot_type = ChartData.PlotType.BAR
 		chart_suspension_rr.set_chart_data_color(chart_suspension_rr.chart_data[-1], colors[1])
 		await get_tree().process_frame
@@ -277,25 +271,6 @@ func draw_charts() -> void:
 		chart_suspension_fr.queue_redraw()
 		chart_suspension_rl.queue_redraw()
 		chart_suspension_rr.queue_redraw()
-
-
-func get_histogram(data: Array[float], bins: Array[float]) -> Array[float]:
-	var bin_count := bins.size()
-	var histogram: Array[float] = []
-	var _discard := histogram.resize(bin_count + 1)
-	for value in data:
-		var value_found := false
-		for i in bin_count:
-			if value < bins[i]:
-				value_found = true
-				histogram[i] += 1
-				break
-		if value_found:
-			continue
-		histogram[-1] += 1
-	var point_count := data.size()
-	histogram.assign(histogram.map(func(value: float) -> float: return 100 * value / point_count))
-	return histogram
 
 
 func get_data(lap: LapData, data_type: String) -> Array[float]:
