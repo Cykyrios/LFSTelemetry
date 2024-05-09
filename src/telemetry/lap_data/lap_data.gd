@@ -41,6 +41,8 @@ func compute_derived_data() -> void:
 			var suspension_delta := current_wheel.suspension_deflection \
 					- previous_wheel.suspension_deflection
 			current_wheel.suspension_speed = suspension_delta / dt
+	if car_data.size() <= 1:
+		return
 	# Fill first data point with zeros or copy second data point
 	for j in WheelData.WheelIndex.size():
 		car_data[0].wheel_data[j] = car_data[1].wheel_data[j]

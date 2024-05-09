@@ -40,11 +40,11 @@ func delete_previous_lap_data() -> void:
 	current_lap.outlap = false
 
 
-func end_current_lap() -> void:
-	process_lap_data(current_lap)
+func end_current_lap(lap_completed := true) -> void:
+	process_lap_data(current_lap, lap_completed)
 
 
-func process_lap_data(lap: LapData) -> void:
+func process_lap_data(lap: LapData, lap_completed := true) -> void:
 	var process_data_threaded := func process_data_threaded(lap_data: LapData) -> void:
 		lap_data.date = Time.get_datetime_string_from_system(true, true)
 		lap_data.track = track
@@ -54,7 +54,8 @@ func process_lap_data(lap: LapData) -> void:
 		lap_data.driver = player_name
 		lap_data.sort_packets()
 		lap_data.fill_car_data()
-		remove_excess_data(lap_data)
+		if lap_completed:
+			remove_excess_data(lap_data)
 		if (
 			lap_data.car_data.size() > 1 and
 			(lap_data.car_data[1].indexed_distance > 0 and
@@ -139,6 +140,6 @@ func start_recording() -> void:
 
 
 func stop_recording() -> void:
-	end_current_lap()
+	end_current_lap(false)
 	recording = false
 	EventBus.telemetry_ended.emit()
