@@ -256,16 +256,27 @@ func draw_charts() -> void:
 		var colors := ColorMapD3Category10.new().colors
 		chart_suspension_fl.add_data(histogram_fl.bins, histogram_fl.data, "Damper vel. FL")
 		chart_suspension_fl.chart_data[-1].plot_type = ChartData.PlotType.BAR
-		chart_suspension_fl.set_chart_data_color(chart_suspension_fl.chart_data[-1], colors[2])
 		chart_suspension_fr.add_data(histogram_fr.bins, histogram_fr.data, "Damper vel. FR")
 		chart_suspension_fr.chart_data[-1].plot_type = ChartData.PlotType.BAR
-		chart_suspension_fr.set_chart_data_color(chart_suspension_fr.chart_data[-1], colors[3])
 		chart_suspension_rl.add_data(histogram_rl.bins, histogram_rl.data, "Damper vel. RL")
 		chart_suspension_rl.chart_data[-1].plot_type = ChartData.PlotType.BAR
-		chart_suspension_rl.set_chart_data_color(chart_suspension_rl.chart_data[-1], colors[0])
 		chart_suspension_rr.add_data(histogram_rr.bins, histogram_rr.data, "Damper vel. RR")
 		chart_suspension_rr.chart_data[-1].plot_type = ChartData.PlotType.BAR
-		chart_suspension_rr.set_chart_data_color(chart_suspension_rr.chart_data[-1], colors[1])
+		var set_histogram_colors := func set_histogram_colors(
+			chart: Chart, histogram: DamperHistogram, color: Color
+		) -> void:
+			chart.chart_data[-1].color_map = ColorMap.create_from_color_samples(
+					[color, color.lightened(0.4)], 2)
+			chart.chart_data[-1].color_data.assign(
+					chart.chart_data[-1].x_data.map(func(value: float) -> float:
+						return 1 if absf(value) > histogram.slow_speed_boundary else 0))
+			var drawable_area := DrawableArea.new(chart.x_axis_primary, -25, 25,
+					Color(0.7, 0.7, 0.7, 0.2))
+			chart.drawables.append(drawable_area)
+		set_histogram_colors.call(chart_suspension_fl, histogram_fl, colors[2])
+		set_histogram_colors.call(chart_suspension_fr, histogram_fr, colors[3])
+		set_histogram_colors.call(chart_suspension_rl, histogram_rl, colors[0])
+		set_histogram_colors.call(chart_suspension_rr, histogram_rr, colors[1])
 		await get_tree().process_frame
 		chart_suspension_fl.queue_redraw()
 		chart_suspension_fr.queue_redraw()
