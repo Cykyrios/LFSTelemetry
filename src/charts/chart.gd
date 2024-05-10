@@ -25,6 +25,7 @@ var x_axis_secondary: AxisX = null
 var y_axis_secondary: AxisY = null
 
 var chart_data: Array[ChartData] = []
+var drawables: Array[Drawable] = []
 
 var equal_aspect := false
 
@@ -64,6 +65,8 @@ func _draw() -> void:
 	_update_axis_figure_sizes(axes)
 	_update_axis_ranges(axes)
 	_draw_chart_elements(axes)
+	for drawable in drawables:
+		_draw_drawable(drawable)
 
 
 func add_data(data_x: Array[float], data_y: Array[float], title := "") -> void:
@@ -203,6 +206,25 @@ func _draw_chart_elements(axes: Array[Axis]) -> void:
 				-text.get_line_ascent() / 2
 			)
 			text.draw(get_canvas_item(), pos + label_offset)
+
+
+func _draw_drawable(drawable: Drawable) -> void:
+	if drawable is DrawableArea:
+		var area := drawable as DrawableArea
+		var rect := Rect2(chart_area.position, Vector2.ZERO)
+		if area.axis is AxisX:
+			rect.position.x += remap(area.start, area.axis.view_min, area.axis.view_max,
+					0, chart_area.size.x)
+			rect.size.x = remap(area.end, area.axis.view_min, area.axis.view_max,
+					0, chart_area.size.x) - rect.position.x + chart_area.position.x
+			rect.size.y = chart_area.size.y
+		else:
+			rect.position.y += remap(area.start, area.axis.view_min, area.axis.view_max,
+					chart_area.size.y, 0)
+			rect.size.x = chart_area.size.x
+			rect.size.y = remap(area.end, area.axis.view_min, area.axis.view_max,
+					chart_area.size.y, 0) - rect.position.y
+		draw_rect(rect, area.color)
 
 
 func _draw_frame() -> void:
