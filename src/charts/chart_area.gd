@@ -51,9 +51,11 @@ func _draw_data() -> void:
 				color_map = ColorMapMagma.new()
 		var normalized_color_data: Array[float] = []
 		_discard = normalized_color_data.resize(series.color_data.size())
+		var color_min := series.color_data.min() as float
+		var color_max := series.color_data.max() as float
 		for c in series.color_data.size():
 			normalized_color_data[c] = color_map.get_normalized_value(
-					series.color_data[c], series.color_min, series.color_max)
+					series.color_data[c], color_min, color_max)
 		var colors: Array[Color] = []
 		colors.assign(normalized_color_data.map(color_map.get_color))
 		_draw_title(series, color_map)

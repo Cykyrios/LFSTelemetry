@@ -16,15 +16,8 @@ var y_data: Array[float] = []:
 var color_data: Array[float] = []:
 	set(value):
 		color_data = value
-		if color_data.is_empty():
-			return
-		color_min = color_data.min()
-		color_max = color_data.max()
 var color_map: ColorMap = null
 var plot_type := PlotType.LINE
-
-var color_min := 0.0
-var color_max := 0.0
 
 var x_axis: AxisX = null
 var y_axis: AxisY = null
