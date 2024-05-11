@@ -139,6 +139,11 @@ func draw_charts() -> void:
 		chart_path.chart_data[-1].color_data = color_data
 		chart_path.chart_data[-1].color_map = ColorMapD3RdYlGn.new()
 		chart_path.chart_data[-1].title = "Speed [km/h]"
+		var legend := DrawableLegend.generate_contour_legend("Speed [km/h]",
+				chart_path.chart_data[-1].color_map, 9,
+				chart_path.chart_data[-1].color_data.min() as float,
+				chart_path.chart_data[-1].color_data.max() as float)
+		chart_path.drawables.append(legend)
 	chart_path.equal_aspect = true
 	chart_path.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN
 	await get_tree().process_frame
