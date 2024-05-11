@@ -210,102 +210,111 @@ func _draw_chart_elements(axes: Array[Axis]) -> void:
 
 func _draw_drawable(drawable: Drawable) -> void:
 	if drawable is DrawableArea:
-		var area := drawable as DrawableArea
-		var rect := Rect2(chart_area.position, Vector2.ZERO)
-		if area.axis is AxisX:
-			rect.position.x += remap(area.start, area.axis.view_min, area.axis.view_max,
-					0, chart_area.size.x)
-			rect.size.x = remap(area.end, area.axis.view_min, area.axis.view_max,
-					0, chart_area.size.x) - rect.position.x + chart_area.position.x
-			rect.size.y = chart_area.size.y
-		else:
-			rect.position.y += remap(area.start, area.axis.view_min, area.axis.view_max,
-					chart_area.size.y, 0)
-			rect.size.x = chart_area.size.x
-			rect.size.y = remap(area.end, area.axis.view_min, area.axis.view_max,
-					chart_area.size.y, 0) - rect.position.y
-		draw_rect(rect, area.color)
+		_draw_drawable_area(drawable as DrawableArea)
 	elif drawable is DrawableLabel:
-		var label := drawable as DrawableLabel
-		var label_position := label.position
-		if label.position_in_chart_area:
-			label_position += chart_area.position
-			if label.relative_position:
-				label_position = Vector2(
-					remap(label.position.x, 0, 1, chart_area.position.x,
-							chart_area.position.x + chart_area.size.x),
-					remap(label.position.y, 0, 1, chart_area.position.y + chart_area.size.y,
-						chart_area.position.y)
-					)
-		else:
-			if label.relative_position:
-				label_position = Vector2(
-					remap(label.position.x, 0, 1, 0, size.x),
-					remap(label.position.y, 0, 1, size.y, 0)
-				)
-		var sizes: Array[Vector2] = []
-		var max_width := 0.0
-		for i in label.text_paragraph.get_line_count():
-			sizes.append(label.text_paragraph.get_line_size(i))
-			max_width = maxf(max_width, sizes[-1].x)
-		var offsets: Array[Vector2] = []
-		for i in sizes.size():
-			offsets.append(Vector2(
-				(max_width - sizes[i].x) / 2,
-				0.0 if i == 0 else offsets[i - 1].y + sizes[i - 1].y)
-			)
-		for i in label.text_paragraph.get_line_count():
-			label.text_paragraph.draw_line(get_canvas_item(),
-					label_position + label.get_offset() + offsets[i], i, label.color)
+		_draw_drawable_label(drawable as DrawableLabel)
 	elif drawable is DrawableLegend:
-		var legend := drawable as DrawableLegend
-		var margin := 5
-		var offset := Vector2(-10, 10)
-		var title := TextLine.new()
-		var _discard := title.add_string(legend.title, font, font_size)
-		var title_size := title.get_size()
-		var dummy_label := TextLine.new()
-		_discard = dummy_label.add_string("0.123456789", font, font_size)
-		var line_height := dummy_label.get_size().y
-		var labels: Array[TextLine] = []
-		var max_width := 0.0
-		if legend.discrete:
-			for i in legend.values.size():
-				var label := TextLine.new()
-				_discard = label.add_string("%s" % [legend.values[i]], font, font_size)
-				labels.append(label)
-				max_width = maxf(max_width, label.get_line_width())
-			var max_element_width := max_width + line_height + margin
-			var element_offset := (title_size.x - max_element_width) / 2
-			var legend_width := maxf(title_size.x, max_element_width) + 2 * margin
-			var legend_offset := offset + Vector2(
-				(chart_area.size.x if offset.x < 0 else 0.0) - legend_width,
-				chart_area.size.y if offset.y < 0 else 0.0
+		_draw_drawable_legend(drawable as DrawableLegend)
+
+
+func _draw_drawable_area(area: DrawableArea) -> void:
+	var rect := Rect2(chart_area.position, Vector2.ZERO)
+	if area.axis is AxisX:
+		rect.position.x += remap(area.start, area.axis.view_min, area.axis.view_max,
+				0, chart_area.size.x)
+		rect.size.x = remap(area.end, area.axis.view_min, area.axis.view_max,
+				0, chart_area.size.x) - rect.position.x + chart_area.position.x
+		rect.size.y = chart_area.size.y
+	else:
+		rect.position.y += remap(area.start, area.axis.view_min, area.axis.view_max,
+				chart_area.size.y, 0)
+		rect.size.x = chart_area.size.x
+		rect.size.y = remap(area.end, area.axis.view_min, area.axis.view_max,
+				chart_area.size.y, 0) - rect.position.y
+	draw_rect(rect, area.color)
+
+
+func _draw_drawable_label(label: DrawableLabel) -> void:
+	var label_position := label.position
+	if label.position_in_chart_area:
+		label_position += chart_area.position
+		if label.relative_position:
+			label_position = Vector2(
+				remap(label.position.x, 0, 1, chart_area.position.x,
+						chart_area.position.x + chart_area.size.x),
+				remap(label.position.y, 0, 1, chart_area.position.y + chart_area.size.y,
+					chart_area.position.y)
+				)
+	else:
+		if label.relative_position:
+			label_position = Vector2(
+				remap(label.position.x, 0, 1, 0, size.x),
+				remap(label.position.y, 0, 1, size.y, 0)
 			)
-			var legend_position := chart_area.position + legend_offset
-			var title_offset := title_size.y + 2
-			var legend_size := Vector2(legend_width,
-					title_offset + line_height * labels.size() + 2 * margin)
-			draw_rect(Rect2(legend_position, legend_size), Color(0.2, 0.2, 0.2, 0.7))
-			draw_rect(Rect2(legend_position, legend_size), x_axis_primary.major_tick_color, false)
-			title.draw(get_canvas_item(), legend_position + Vector2(
-					(legend_width - title.get_line_width()) / 2, margin))
-			for i in labels.size():
-				var idx := labels.size() - 1 - i
-				var vertical_offset := title_offset + i * line_height
-				labels[idx].draw(get_canvas_item(), legend_position + Vector2(
-						margin + element_offset + max_width - labels[idx].get_line_width(),
-						margin + vertical_offset))
-				draw_rect(Rect2(
-					legend_position + Vector2(legend_width - margin - element_offset - line_height,
-							margin + vertical_offset),
-					Vector2.ONE * line_height), legend.colors[idx]
-				)
-				draw_rect(Rect2(
-					legend_position + Vector2(legend_width - margin - element_offset - line_height,
-							margin + vertical_offset),
-					Vector2.ONE * line_height), x_axis_primary.major_tick_color, false
-				)
+	var sizes: Array[Vector2] = []
+	var max_width := 0.0
+	for i in label.text_paragraph.get_line_count():
+		sizes.append(label.text_paragraph.get_line_size(i))
+		max_width = maxf(max_width, sizes[-1].x)
+	var offsets: Array[Vector2] = []
+	for i in sizes.size():
+		offsets.append(Vector2(
+			(max_width - sizes[i].x) / 2,
+			0.0 if i == 0 else offsets[i - 1].y + sizes[i - 1].y)
+		)
+	for i in label.text_paragraph.get_line_count():
+		label.text_paragraph.draw_line(get_canvas_item(),
+				label_position + label.get_offset() + offsets[i], i, label.color)
+
+
+func _draw_drawable_legend(legend: DrawableLegend) -> void:
+	var margin := 5
+	var offset := Vector2(-10, 10)
+	var title := TextLine.new()
+	var _discard := title.add_string(legend.title, font, font_size)
+	var title_size := title.get_size()
+	var dummy_label := TextLine.new()
+	_discard = dummy_label.add_string("0.123456789", font, font_size)
+	var line_height := dummy_label.get_size().y
+	var labels: Array[TextLine] = []
+	var max_width := 0.0
+	if legend.discrete:
+		for i in legend.values.size():
+			var label := TextLine.new()
+			_discard = label.add_string("%s" % [legend.values[i]], font, font_size)
+			labels.append(label)
+			max_width = maxf(max_width, label.get_line_width())
+		var max_element_width := max_width + line_height + margin
+		var element_offset := (title_size.x - max_element_width) / 2
+		var legend_width := maxf(title_size.x, max_element_width) + 2 * margin
+		var legend_offset := offset + Vector2(
+			(chart_area.size.x if offset.x < 0 else 0.0) - legend_width,
+			chart_area.size.y if offset.y < 0 else 0.0
+		)
+		var legend_position := chart_area.position + legend_offset
+		var title_offset := title_size.y + 2
+		var legend_size := Vector2(legend_width,
+				title_offset + line_height * labels.size() + 2 * margin)
+		draw_rect(Rect2(legend_position, legend_size), Color(0.2, 0.2, 0.2, 0.7))
+		draw_rect(Rect2(legend_position, legend_size), x_axis_primary.major_tick_color, false)
+		title.draw(get_canvas_item(), legend_position + Vector2(
+				(legend_width - title.get_line_width()) / 2, margin))
+		for i in labels.size():
+			var idx := labels.size() - 1 - i
+			var vertical_offset := title_offset + i * line_height
+			labels[idx].draw(get_canvas_item(), legend_position + Vector2(
+					margin + element_offset + max_width - labels[idx].get_line_width(),
+					margin + vertical_offset))
+			draw_rect(Rect2(
+				legend_position + Vector2(legend_width - margin - element_offset - line_height,
+						margin + vertical_offset),
+				Vector2.ONE * line_height), legend.colors[idx]
+			)
+			draw_rect(Rect2(
+				legend_position + Vector2(legend_width - margin - element_offset - line_height,
+						margin + vertical_offset),
+				Vector2.ONE * line_height), x_axis_primary.major_tick_color, false
+			)
 
 
 func _draw_frame() -> void:
