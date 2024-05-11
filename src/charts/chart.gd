@@ -280,7 +280,7 @@ func _draw_drawable_legend(legend: DrawableLegend) -> void:
 	var max_width := 0.0
 	for i in legend.values.size():
 		var label := TextLine.new()
-		_discard = label.add_string("%.1f" % [legend.values[i]], font, font_size)
+		_discard = label.add_string("%.0f" % [legend.values[i]], font, font_size)
 		labels.append(label)
 		max_width = maxf(max_width, label.get_line_width())
 	var max_element_width := max_width + line_height + margin
@@ -298,6 +298,7 @@ func _draw_drawable_legend(legend: DrawableLegend) -> void:
 	draw_rect(Rect2(legend_position, legend_size), x_axis_primary.major_tick_color, false)
 	title.draw(get_canvas_item(), legend_position + Vector2(
 			(legend_width - title.get_line_width()) / 2, margin))
+	var color_map_h_offset := legend_width - margin - element_offset - line_height
 	if legend.discrete:
 		for i in labels.size():
 			var idx := labels.size() - 1 - i
@@ -305,16 +306,10 @@ func _draw_drawable_legend(legend: DrawableLegend) -> void:
 			labels[idx].draw(get_canvas_item(), legend_position + Vector2(
 					margin + element_offset + max_width - labels[idx].get_line_width(),
 					margin + vertical_offset))
-			draw_rect(Rect2(
-				legend_position + Vector2(legend_width - margin - element_offset - line_height,
-						margin + vertical_offset),
-				Vector2.ONE * line_height), legend.colors[idx]
-			)
-			draw_rect(Rect2(
-				legend_position + Vector2(legend_width - margin - element_offset - line_height,
-						margin + vertical_offset),
-				Vector2.ONE * line_height), x_axis_primary.major_tick_color, false
-			)
+			var rect := Rect2(legend_position + Vector2(color_map_h_offset,
+						margin + vertical_offset), Vector2.ONE * line_height)
+			draw_rect(rect, legend.colors[idx])
+			draw_rect(rect, x_axis_primary.major_tick_color, false)
 	else:
 		title_offset += line_height / 2
 		var max_height := 160
@@ -333,30 +328,25 @@ func _draw_drawable_legend(legend: DrawableLegend) -> void:
 		if legend.smooth_contours:
 			for i in point_count:
 				color_map_points[i] = legend_position + Vector2(
-						legend_width - margin - element_offset - line_height / 2,
+						color_map_h_offset + line_height / 2,
 						margin + title_offset + i)
 				color_map_colors[i] = legend.color_map.get_color(
 						(point_count - i) / (point_count as float - 1))
 			draw_polyline_colors(color_map_points, color_map_colors, line_height)
 		else:
 			for i in point_count:
-				draw_rect(Rect2(
-					legend_position + Vector2(legend_width - margin - element_offset - line_height,
-							margin + title_offset + i * line_height),
-					Vector2.ONE * line_height), legend.color_map.get_color(i as float / (point_count - 1))
-				)
-		draw_rect(Rect2(
-			legend_position + Vector2(legend_width - margin - element_offset - line_height,
-					margin + title_offset),
-			Vector2(1, labels.size() - 1) * line_height), x_axis_primary.major_tick_color, false
-		)
+				draw_rect(Rect2(legend_position + Vector2(color_map_h_offset,
+						margin + title_offset + i * line_height), Vector2.ONE * line_height),
+						legend.color_map.get_color(i as float / (point_count - 1)))
+		draw_rect(Rect2(legend_position + Vector2(color_map_h_offset, margin + title_offset),
+				Vector2(1, labels.size() - 1) * line_height), x_axis_primary.major_tick_color,
+				false)
 		for i in labels.size() - 2:
-			draw_line(
-				legend_position + Vector2(legend_width - margin - element_offset - line_height,
-						margin + title_offset + (i + 1) * line_height),
-				legend_position + Vector2(legend_width - margin - element_offset,
-						margin + title_offset + (i + 1) * line_height),
-				x_axis_primary.major_tick_color)
+			draw_line(legend_position + Vector2(color_map_h_offset,
+					margin + title_offset + (i + 1) * line_height),
+					legend_position + Vector2(legend_width - margin - element_offset,
+					margin + title_offset + (i + 1) * line_height),
+					x_axis_primary.major_tick_color)
 
 
 func _draw_frame() -> void:
