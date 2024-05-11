@@ -275,7 +275,9 @@ func _draw_drawable(drawable: Drawable) -> void:
 				_discard = label.add_string("%s" % [legend.values[i]], font, font_size)
 				labels.append(label)
 				max_width = maxf(max_width, label.get_line_width())
-			var legend_width := maxf(title_size.x, max_width + line_height + margin) + 2 * margin
+			var max_element_width := max_width + line_height + margin
+			var element_offset := (title_size.x - max_element_width) / 2
+			var legend_width := maxf(title_size.x, max_element_width) + 2 * margin
 			var legend_offset := offset + Vector2(
 				(chart_area.size.x if offset.x < 0 else 0.0) - legend_width,
 				chart_area.size.y if offset.y < 0 else 0.0
@@ -292,15 +294,15 @@ func _draw_drawable(drawable: Drawable) -> void:
 				var idx := labels.size() - 1 - i
 				var vertical_offset := title_offset + i * line_height
 				labels[idx].draw(get_canvas_item(), legend_position + Vector2(
-						margin + max_width - labels[idx].get_line_width(),
+						margin + element_offset + max_width - labels[idx].get_line_width(),
 						margin + vertical_offset))
 				draw_rect(Rect2(
-					legend_position + Vector2(legend_width - margin - line_height,
+					legend_position + Vector2(legend_width - margin - element_offset - line_height,
 							margin + vertical_offset),
 					Vector2.ONE * line_height), legend.colors[idx]
 				)
 				draw_rect(Rect2(
-					legend_position + Vector2(legend_width - margin - line_height,
+					legend_position + Vector2(legend_width - margin - element_offset - line_height,
 							margin + vertical_offset),
 					Vector2.ONE * line_height), x_axis_primary.major_tick_color, false
 				)
