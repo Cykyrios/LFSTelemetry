@@ -212,6 +212,11 @@ func draw_charts() -> void:
 		chart_rpm_g.chart_data[-1].plot_type = ChartData.PlotType.SCATTER
 		chart_rpm_g.chart_data[-1].color_data = gear_filtered
 		chart_rpm_g.chart_data[-1].color_map = ColorMapTurbo.new()
+		var gears: Array[float] = []
+		gears.assign(range(gear_filtered.min(), gear_filtered.max() + 1))
+		var legend := DrawableLegend.generate_discrete_legend("Gear",
+				chart_rpm_g.chart_data[-1].color_map, gears)
+		chart_rpm_g.drawables.append(legend)
 		var chart_glon := Chart.new()
 		rpm_vbox_right.add_child(chart_glon)
 		chart_glon.chart_area.custom_minimum_size = Vector2(400, 300)
@@ -219,6 +224,9 @@ func draw_charts() -> void:
 		chart_glon.chart_data[-1].plot_type = ChartData.PlotType.SCATTER
 		chart_glon.chart_data[-1].color_data = gear_filtered
 		chart_glon.chart_data[-1].color_map = ColorMapTurbo.new()
+		legend = DrawableLegend.generate_discrete_legend("Gear",
+				chart_glon.chart_data[-1].color_map, gears)
+		chart_glon.drawables.append(legend)
 		await get_tree().process_frame
 		chart_rpm_g.queue_redraw()
 		chart_glon.queue_redraw()

@@ -257,6 +257,53 @@ func _draw_drawable(drawable: Drawable) -> void:
 		for i in label.text_paragraph.get_line_count():
 			label.text_paragraph.draw_line(get_canvas_item(),
 					label_position + label.get_offset() + offsets[i], i, label.color)
+	elif drawable is DrawableLegend:
+		var legend := drawable as DrawableLegend
+		var margin := 5
+		var offset := Vector2(-10, 10)
+		var title := TextLine.new()
+		var _discard := title.add_string(legend.title, font, font_size)
+		var title_size := title.get_size()
+		var dummy_label := TextLine.new()
+		_discard = dummy_label.add_string("0.123456789", font, font_size)
+		var line_height := dummy_label.get_size().y
+		var labels: Array[TextLine] = []
+		var max_width := 0.0
+		if legend.discrete:
+			for i in legend.values.size():
+				var label := TextLine.new()
+				_discard = label.add_string("%s" % [legend.values[i]], font, font_size)
+				labels.append(label)
+				max_width = maxf(max_width, label.get_line_width())
+			var legend_width := maxf(title_size.x, max_width + line_height + margin) + 2 * margin
+			var legend_offset := offset + Vector2(
+				(chart_area.size.x if offset.x < 0 else 0.0) - legend_width,
+				chart_area.size.y if offset.y < 0 else 0.0
+			)
+			var legend_position := chart_area.position + legend_offset
+			var title_offset := title_size.y + 2
+			var legend_size := Vector2(legend_width,
+					title_offset + line_height * labels.size() + 2 * margin)
+			draw_rect(Rect2(legend_position, legend_size), Color(0.2, 0.2, 0.2, 0.7))
+			draw_rect(Rect2(legend_position, legend_size), x_axis_primary.major_tick_color, false)
+			title.draw(get_canvas_item(), legend_position + Vector2(
+					(legend_width - title.get_line_width()) / 2, margin))
+			for i in labels.size():
+				var idx := labels.size() - 1 - i
+				var vertical_offset := title_offset + i * line_height
+				labels[idx].draw(get_canvas_item(), legend_position + Vector2(
+						margin + max_width - labels[idx].get_line_width(),
+						margin + vertical_offset))
+				draw_rect(Rect2(
+					legend_position + Vector2(legend_width - margin - line_height,
+							margin + vertical_offset),
+					Vector2.ONE * line_height), legend.colors[idx]
+				)
+				draw_rect(Rect2(
+					legend_position + Vector2(legend_width - margin - line_height,
+							margin + vertical_offset),
+					Vector2.ONE * line_height), x_axis_primary.major_tick_color, false
+				)
 
 
 func _draw_frame() -> void:
