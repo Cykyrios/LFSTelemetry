@@ -24,6 +24,7 @@ var y_axis_primary := AxisY.new()
 var x_axis_secondary: AxisX = null
 var y_axis_secondary: AxisY = null
 
+var chart_background := Color(0.2, 0.2, 0.2, 1)
 var chart_data: Array[ChartData] = []
 var drawables: Array[Drawable] = []
 
@@ -98,7 +99,7 @@ func set_chart_data_color(data: ChartData, color: Color) -> void:
 
 
 func _draw_background() -> void:
-	draw_rect(Rect2(chart_area.position, chart_area.size), Color(0.2, 0.2, 0.2, 1))
+	draw_rect(Rect2(chart_area.position, chart_area.size), chart_background)
 
 
 func _draw_chart_elements(axes: Array[Axis]) -> void:
@@ -294,7 +295,7 @@ func _draw_drawable_legend(legend: DrawableLegend) -> void:
 	var title_offset := title_size.y + 2
 	var legend_size := Vector2(legend_width,
 			title_offset + line_height * labels.size() + 2 * margin)
-	draw_rect(Rect2(legend_position, legend_size), Color(0.2, 0.2, 0.2, 0.7))
+	draw_rect(Rect2(legend_position, legend_size), Color(chart_background, 0.7))
 	draw_rect(Rect2(legend_position, legend_size), x_axis_primary.major_tick_color, false)
 	title.draw(get_canvas_item(), legend_position + Vector2(
 			(legend_width - title.get_line_width()) / 2, margin))
