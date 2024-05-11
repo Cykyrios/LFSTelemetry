@@ -225,6 +225,38 @@ func _draw_drawable(drawable: Drawable) -> void:
 			rect.size.y = remap(area.end, area.axis.view_min, area.axis.view_max,
 					chart_area.size.y, 0) - rect.position.y
 		draw_rect(rect, area.color)
+	elif drawable is DrawableLabel:
+		var label := drawable as DrawableLabel
+		var label_position := label.position
+		if label.position_in_chart_area:
+			label_position += chart_area.position
+			if label.relative_position:
+				label_position = Vector2(
+					remap(label.position.x, 0, 1, chart_area.position.x,
+							chart_area.position.x + chart_area.size.x),
+					remap(label.position.y, 0, 1, chart_area.position.y + chart_area.size.y,
+						chart_area.position.y)
+					)
+		else:
+			if label.relative_position:
+				label_position = Vector2(
+					remap(label.position.x, 0, 1, 0, size.x),
+					remap(label.position.y, 0, 1, size.y, 0)
+				)
+		var sizes: Array[Vector2] = []
+		var max_width := 0.0
+		for i in label.text_paragraph.get_line_count():
+			sizes.append(label.text_paragraph.get_line_size(i))
+			max_width = maxf(max_width, sizes[-1].x)
+		var offsets: Array[Vector2] = []
+		for i in sizes.size():
+			offsets.append(Vector2(
+				(max_width - sizes[i].x) / 2,
+				0.0 if i == 0 else offsets[i - 1].y + sizes[i - 1].y)
+			)
+		for i in label.text_paragraph.get_line_count():
+			label.text_paragraph.draw_line(get_canvas_item(),
+					label_position + label.get_offset() + offsets[i], i, label.color)
 
 
 func _draw_frame() -> void:
