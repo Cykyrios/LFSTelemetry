@@ -265,7 +265,7 @@ func draw_charts() -> void:
 		var add_label := func add_label(
 			chart: Chart, text: String, color: Color, pos: Vector2
 		) -> DrawableLabel:
-			var label := DrawableLabel.new(chart.font, chart.font_size + 2, text, color,
+			var label := DrawableLabel.new(chart.font, chart.font_size + 1, text, color,
 					DrawableLabel.AlignHorizontal.CENTER, DrawableLabel.AlignVertical.CENTER)
 			label.position_in_chart_area = true
 			label.relative_position = true

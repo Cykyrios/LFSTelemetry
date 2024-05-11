@@ -84,8 +84,9 @@ func _draw_title(series: ChartData, color_map: ColorMap) -> void:
 		var min_color_value := series.color_data.min() as float
 		var max_color_value := series.color_data.max() as float
 		var mean_color_value := (min_color_value + max_color_value) / 2.0
+		# Magic 0.004 (1 / 256) subtracted so stepped color maps "round down" the color.
 		color = color_map.get_color(color_map.get_normalized_value(
-				mean_color_value, min_color_value, max_color_value))
+				mean_color_value, min_color_value, max_color_value) - 0.004)
 	var new_offset := text.get_line_ascent() + text.get_line_descent()
 	if series.y_axis == chart.y_axis_primary:
 		text.draw(get_canvas_item(), primary_title_offset, color)
