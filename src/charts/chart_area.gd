@@ -32,6 +32,9 @@ func _draw_data() -> void:
 		var point_count := mini(x_data.size(), y_data.size())
 		var _discard := points.resize(point_count)
 
+		if series.y_data.is_empty():
+			continue
+
 		for j in point_count:
 			points[j] = Vector2(
 				remap(x_data[j], x_axis.view_min, x_axis.view_max, 0, size.x),
