@@ -50,12 +50,12 @@ func _draw_data() -> void:
 			if not color_map:
 				color_map = ColorMapMagma.new()
 		var normalized_color_data: Array[float] = []
-		_discard = normalized_color_data.resize(series.color_data.size())
-		var color_min := series.color_data.min() as float
-		var color_max := series.color_data.max() as float
+		_discard = normalized_color_data.resize(series.y_data.size())
+		var color_bounds := Vector2.ZERO if series.color_data.is_empty() else \
+				Vector2(series.color_data.min() as float, series.color_data.max() as float)
 		for c in series.color_data.size():
 			normalized_color_data[c] = color_map.get_normalized_value(
-					series.color_data[c], color_min, color_max)
+					series.color_data[c], color_bounds.x, color_bounds.y)
 		var colors: Array[Color] = []
 		colors.assign(normalized_color_data.map(color_map.get_color))
 		_draw_title(series, color_map)
