@@ -2,6 +2,16 @@ class_name ChartPageTrack
 extends ChartPage
 
 
+var main_x_pos: Array[float] = []
+var main_y_pos: Array[float] = []
+var main_speed: Array[float] = []
+var main_throttle: Array[float] = []
+var main_brake: Array[float] = []
+var reference_x_pos: Array[float] = []
+var reference_y_pos: Array[float] = []
+var reference_speed: Array[float] = []
+
+
 func _init() -> void:
 	super()
 	name = "Track"
@@ -13,16 +23,8 @@ func _draw_charts() -> void:
 	grid_container.columns = 2
 	scroll_container.add_child(grid_container)
 
-	var main_x_pos: Array[float] = []
-	var main_y_pos: Array[float] = []
-	var reference_x_pos: Array[float] = []
-	var reference_y_pos: Array[float] = []
-	if main_lap:
-		main_x_pos = chart_creator.get_data(main_lap, "x_pos")
-		main_y_pos = chart_creator.get_data(main_lap, "y_pos")
-	if reference_lap:
-		reference_x_pos = chart_creator.get_data(reference_lap, "x_pos")
-		reference_y_pos = chart_creator.get_data(reference_lap, "y_pos")
+	if stale:
+		recompute_data()
 
 	var chart_speed := Chart.new()
 	chart_speed.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN
@@ -32,14 +34,14 @@ func _draw_charts() -> void:
 	if reference_lap:
 		chart_speed.add_data(reference_x_pos, reference_y_pos, "Reference")
 		var color_data: Array[float] = []
-		color_data.assign((chart_creator.get_data(reference_lap, "speed")))
+		color_data.assign(reference_speed)
 		chart_speed.chart_data[-1].color_data = color_data
 		chart_speed.chart_data[-1].color_map = ColorMapViridis.new()
 		chart_speed.chart_data[-1].title = "Reference"
 	if main_lap:
 		chart_speed.add_data(main_x_pos, main_y_pos)
 		var color_data: Array[float] = []
-		color_data.assign((chart_creator.get_data(main_lap, "speed")))
+		color_data.assign(main_speed)
 		chart_speed.chart_data[-1].color_data = color_data
 		chart_speed.chart_data[-1].color_map = ColorMapD3RdYlGn.new()
 		chart_speed.chart_data[-1].title = "Speed [km/h]"
@@ -59,15 +61,29 @@ func _draw_charts() -> void:
 		chart_pedals.set_chart_data_color(chart_pedals.chart_data[-1], Color.GOLD)
 		chart_pedals.add_data(main_x_pos, main_y_pos, "Reference")
 		var color_data: Array[float] = []
-		color_data.assign(chart_creator.get_data(main_lap, "throttle"))
+		color_data.assign(main_throttle)
 		color_data.assign(color_data.map(func(value: float) -> float: return maxf(value, 0)))
 		chart_pedals.chart_data[-1].color_data = color_data.duplicate()
 		chart_pedals.chart_data[-1].color_map = ColorMap.create_from_color_samples(
 				[Color(Color.WEB_GREEN, 0), Color.WEB_GREEN])
 		chart_pedals.add_data(main_x_pos, main_y_pos, "Reference")
-		color_data.assign(chart_creator.get_data(main_lap, "brake"))
+		color_data.assign(main_brake)
 		chart_pedals.chart_data[-1].color_data = color_data.duplicate()
 		chart_pedals.chart_data[-1].color_map = ColorMap.create_from_color_samples(
 				[Color(Color.CRIMSON, 0), Color.CRIMSON])
 
 	refresh_charts()
+
+
+func recompute_data() -> void:
+	if main_lap:
+		main_x_pos = chart_creator.get_data(main_lap, "x_pos")
+		main_y_pos = chart_creator.get_data(main_lap, "y_pos")
+		main_speed = chart_creator.get_data(main_lap, "speed")
+		main_throttle = chart_creator.get_data(main_lap, "throttle")
+		main_brake = chart_creator.get_data(main_lap, "brake")
+	if reference_lap:
+		reference_x_pos = chart_creator.get_data(reference_lap, "x_pos")
+		reference_y_pos = chart_creator.get_data(reference_lap, "y_pos")
+		reference_speed = chart_creator.get_data(reference_lap, "speed")
+	stale = false
