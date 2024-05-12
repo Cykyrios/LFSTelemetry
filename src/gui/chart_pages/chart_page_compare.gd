@@ -2,11 +2,16 @@ class_name ChartPageCompare
 extends ChartPage
 
 
+func _init() -> void:
+	super()
+	name = "Compare"
+
+
 func _draw_charts() -> void:
 	super()
 	var vbox := VBoxContainer.new()
 	vbox.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	add_child(vbox)
+	scroll_container.add_child(vbox)
 
 	var main_lap_distance: Array[float] = []
 	if main_lap:
@@ -104,5 +109,4 @@ func _draw_charts() -> void:
 		chart_brake.y_axis_primary.data_min = 0
 		chart_brake.y_axis_primary.data_max = 100
 
-	await get_tree().process_frame
 	refresh_charts()

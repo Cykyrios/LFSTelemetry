@@ -2,11 +2,16 @@ class_name ChartPageDriver
 extends ChartPage
 
 
+func _init() -> void:
+	super()
+	name = "Driver"
+
+
 func _draw_charts() -> void:
 	super()
 	var vbox := VBoxContainer.new()
 	vbox.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	add_child(vbox)
+	scroll_container.add_child(vbox)
 
 	var main_lap_distance: Array[float] = []
 	if main_lap:
@@ -123,5 +128,4 @@ func _draw_charts() -> void:
 				chart_creator.get_data(main_lap, "g_lat") as Array[float], "g lat. [g]")
 		chart_gees.set_chart_data_color(chart_gees.chart_data[-1], Color.GOLD)
 
-	await get_tree().process_frame
 	refresh_charts()

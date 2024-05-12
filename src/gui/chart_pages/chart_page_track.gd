@@ -2,11 +2,16 @@ class_name ChartPageTrack
 extends ChartPage
 
 
+func _init() -> void:
+	super()
+	name = "Track"
+
+
 func _draw_charts() -> void:
 	super()
 
 	var chart_path := Chart.new()
-	add_child(chart_path)
+	scroll_container.add_child(chart_path)
 	chart_path.chart_area.custom_minimum_size = Vector2(500, 500)
 	if reference_lap:
 		chart_path.add_data(chart_creator.get_data(reference_lap, "x_pos"),
@@ -32,5 +37,4 @@ func _draw_charts() -> void:
 	chart_path.equal_aspect = true
 	chart_path.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN
 
-	await get_tree().process_frame
 	refresh_charts()

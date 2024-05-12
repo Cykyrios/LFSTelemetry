@@ -1,9 +1,10 @@
 class_name ChartPage
-extends ScrollContainer
+extends MarginContainer
 
 
-var stale := false
+const MARGIN := 10
 
+var scroll_container := ScrollContainer.new()
 
 var main_lap: LapData = null:
 	set(new_lap):
@@ -13,14 +14,22 @@ var reference_lap: LapData = null:
 	set(new_lap):
 		reference_lap = new_lap
 		update_chart_creator()
-
 var chart_creator: ChartCreator = null
+var stale := false
+
+
+func _init() -> void:
+	add_theme_constant_override("margin_top", MARGIN)
+	add_theme_constant_override("margin_left", MARGIN)
+	add_theme_constant_override("margin_right", MARGIN)
+	add_theme_constant_override("margin_bottom", MARGIN)
+	add_child(scroll_container)
 
 
 func _draw_charts() -> void:
-	while get_child_count() > 0:
-		var child := get_children()[-1]
-		remove_child(child)
+	while scroll_container.get_child_count() > 0:
+		var child := scroll_container.get_children()[-1]
+		scroll_container.remove_child(child)
 		child.queue_free()
 
 

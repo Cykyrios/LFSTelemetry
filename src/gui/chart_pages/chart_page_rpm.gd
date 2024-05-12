@@ -2,12 +2,17 @@ class_name ChartPageRPM
 extends ChartPage
 
 
+func _init() -> void:
+	super()
+	name = "RPM"
+
+
 func _draw_charts() -> void:
 	super()
 	var rpm_hbox := HBoxContainer.new()
 	rpm_hbox.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	rpm_hbox.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	add_child(rpm_hbox)
+	scroll_container.add_child(rpm_hbox)
 	var rpm_vbox_left := VBoxContainer.new()
 	rpm_vbox_left.alignment = BoxContainer.ALIGNMENT_CENTER
 	rpm_vbox_left.size_flags_horizontal = Control.SIZE_EXPAND_FILL
@@ -90,7 +95,6 @@ func _draw_charts() -> void:
 	else:
 		var label := Label.new()
 		label.text = "Main lap data is required."
-		add_child(label)
+		scroll_container.add_child(label)
 
-	await get_tree().process_frame
 	refresh_charts()

@@ -20,19 +20,14 @@ func _ready() -> void:
 
 func add_chart_pages() -> void:
 	var chart_page_compare := ChartPageCompare.new()
-	chart_page_compare.name = "Compare"
 	chart_tabs.add_child(chart_page_compare)
 	var chart_page_driver := ChartPageDriver.new()
-	chart_page_driver.name = "Driver"
 	chart_tabs.add_child(chart_page_driver)
 	var chart_page_rpm := ChartPageRPM.new()
-	chart_page_rpm.name = "RPM"
 	chart_tabs.add_child(chart_page_rpm)
 	var chart_page_dampers := ChartPageDampers.new()
-	chart_page_dampers.name = "Dampers"
 	chart_tabs.add_child(chart_page_dampers)
 	var chart_page_track := ChartPageTrack.new()
-	chart_page_track.name = "Track"
 	chart_tabs.add_child(chart_page_track)
 
 
@@ -91,6 +86,12 @@ func print_laps() -> void:
 					"" if lap.sectors.is_empty() else " (%s)" % [print_sectors.call(lap.sectors)]]])
 
 
+func redraw_current_tab() -> void:
+	var current_page := chart_tabs.get_child(chart_tabs.current_tab)
+	if current_page is ChartPage:
+		(current_page as ChartPage).draw_charts()
+
+
 #region callbacks
 func _on_main_lap_pressed() -> void:
 	main_lap = await load_lap()
@@ -99,9 +100,7 @@ func _on_main_lap_pressed() -> void:
 		if child is ChartPage:
 			(child as ChartPage).main_lap = main_lap
 			(child as ChartPage).stale = true
-	var current_page := chart_tabs.get_child(chart_tabs.current_tab)
-	if current_page is ChartPage:
-		(current_page as ChartPage).draw_charts()
+	redraw_current_tab()
 
 
 func _on_reference_lap_pressed() -> void:
@@ -111,9 +110,7 @@ func _on_reference_lap_pressed() -> void:
 		if child is ChartPage:
 			(child as ChartPage).reference_lap = reference_lap
 			(child as ChartPage).stale = true
-	var current_page := chart_tabs.get_child(chart_tabs.current_tab)
-	if current_page is ChartPage:
-		(current_page as ChartPage).draw_charts()
+	redraw_current_tab()
 
 
 func _on_tab_changed(idx: int) -> void:

@@ -2,13 +2,18 @@ class_name ChartPageDampers
 extends ChartPage
 
 
+func _init() -> void:
+	super()
+	name = "Dampers"
+
+
 func _draw_charts() -> void:
 	super()
 	var suspension_grid := GridContainer.new()
 	suspension_grid.columns = 2
 	suspension_grid.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	suspension_grid.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	add_child(suspension_grid)
+	scroll_container.add_child(suspension_grid)
 
 	if main_lap:
 		var chart_suspension_fl := Chart.new()
@@ -35,12 +40,6 @@ func _draw_charts() -> void:
 		var speed_rr := chart_creator.get_data(main_lap, "suspension_speed_rr")
 		var speed_fl := chart_creator.get_data(main_lap, "suspension_speed_fl")
 		var speed_fr := chart_creator.get_data(main_lap, "suspension_speed_fr")
-		#chart_suspension.add_data(main_lap_distance, speed_rl, "Damper speed RL [mm/s]")
-		#chart_suspension.add_data(main_lap_distance, speed_rr, "Damper speed RR [mm/s]")
-		#chart_suspension.add_data(main_lap_distance, speed_fl, "Damper speed FL [mm/s]")
-		#chart_suspension.add_data(main_lap_distance, speed_fr, "Damper speed FR [mm/s]")
-		#await get_tree().process_frame
-		#chart_suspension.queue_redraw()
 		var bin_width := 10.0
 		var max_speed := 200.0
 		var slow_speed := 25.0
@@ -99,15 +98,9 @@ func _draw_charts() -> void:
 		set_histogram_colors.call(chart_suspension_fr, histogram_fr, colors[3])
 		set_histogram_colors.call(chart_suspension_rl, histogram_rl, colors[0])
 		set_histogram_colors.call(chart_suspension_rr, histogram_rr, colors[1])
-		#await get_tree().process_frame
-		#chart_suspension_fl.queue_redraw()
-		#chart_suspension_fr.queue_redraw()
-		#chart_suspension_rl.queue_redraw()
-		#chart_suspension_rr.queue_redraw()
 	else:
 		var label := Label.new()
 		label.text = "Main lap data is required."
-		add_child(label)
+		scroll_container.add_child(label)
 
-	await get_tree().process_frame
 	refresh_charts()
