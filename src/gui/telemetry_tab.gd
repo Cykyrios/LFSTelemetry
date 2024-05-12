@@ -42,6 +42,12 @@ func connect_signals() -> void:
 	_discard = chart_tabs.tab_changed.connect(_on_tab_changed)
 
 
+func get_lap_info(lap: LapData) -> String:
+	return "Track: %s, lap %d (%s)" % [lap.track, lap.lap_number,
+			Utils.get_lap_time_string(lap.lap_time)] \
+			+ "\nDriver: %s (%s)" % [LFSText.lfs_colors_to_bbcode(lap.driver), lap.car]
+
+
 func load_lap() -> LapData:
 	var file_dialog := FileDialog.new()
 	add_child(file_dialog)
@@ -88,8 +94,7 @@ func print_laps() -> void:
 #region callbacks
 func _on_main_lap_pressed() -> void:
 	main_lap = await load_lap()
-	main_lap_label.text = "Driver: %s (%s)" % [LFSText.lfs_colors_to_bbcode(main_lap.driver),
-			main_lap.car]
+	main_lap_label.text = get_lap_info(main_lap)
 	for child in chart_tabs.get_children():
 		if child is ChartPage:
 			(child as ChartPage).main_lap = main_lap
@@ -101,8 +106,7 @@ func _on_main_lap_pressed() -> void:
 
 func _on_reference_lap_pressed() -> void:
 	reference_lap = await load_lap()
-	reference_lap_label.text = "Driver: %s (%s)" % [LFSText.lfs_colors_to_bbcode(
-			reference_lap.driver), reference_lap.car]
+	reference_lap_label.text = get_lap_info(reference_lap)
 	for child in chart_tabs.get_children():
 		if child is ChartPage:
 			(child as ChartPage).reference_lap = reference_lap
