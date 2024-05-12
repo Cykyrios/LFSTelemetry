@@ -33,6 +33,11 @@ size_flags_horizontal = 4
 size_flags_vertical = 4
 text = "Manage Main Lap"
 flat = false
+item_count = 2
+popup/item_0/text = "Load lap"
+popup/item_0/id = 0
+popup/item_1/text = "Clear lap"
+popup/item_1/id = 1
 
 [node name="MainLapInfo" type="RichTextLabel" parent="TelemetryVBox/LapsHBox/MainLapVBox"]
 unique_name_in_owner = true
@@ -41,7 +46,6 @@ layout_mode = 2
 size_flags_horizontal = 4
 size_flags_vertical = 4
 bbcode_enabled = true
-text = "Driver: "
 fit_content = true
 scroll_active = false
 autowrap_mode = 0
@@ -60,6 +64,11 @@ size_flags_horizontal = 4
 size_flags_vertical = 4
 text = "Manage Reference Lap"
 flat = false
+item_count = 2
+popup/item_0/text = "Load lap"
+popup/item_0/id = 0
+popup/item_1/text = "Clear lap"
+popup/item_1/id = 1
 
 [node name="ReferenceLapInfo" type="RichTextLabel" parent="TelemetryVBox/LapsHBox/ReferenceLapVBox"]
 unique_name_in_owner = true
@@ -68,7 +77,6 @@ layout_mode = 2
 size_flags_horizontal = 4
 size_flags_vertical = 4
 bbcode_enabled = true
-text = "Driver: "
 fit_content = true
 scroll_active = false
 autowrap_mode = 0

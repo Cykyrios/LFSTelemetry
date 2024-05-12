@@ -32,12 +32,14 @@ func add_chart_pages() -> void:
 
 
 func connect_signals() -> void:
-	var _discard := main_lap_button.pressed.connect(_on_main_lap_pressed)
-	_discard = reference_lap_button.pressed.connect(_on_reference_lap_pressed)
+	var _discard := main_lap_button.get_popup().id_pressed.connect(_on_main_lap_pressed)
+	_discard = reference_lap_button.get_popup().id_pressed.connect(_on_reference_lap_pressed)
 	_discard = chart_tabs.tab_changed.connect(_on_tab_changed)
 
 
 func get_lap_info(lap: LapData) -> String:
+	if not lap:
+		return ""
 	return "Track: %s, lap %d (%s)" % [lap.track, lap.lap_number,
 			Utils.get_lap_time_string(lap.lap_time)] \
 			+ "\nDriver: %s (%s)" % [LFSText.lfs_colors_to_bbcode(lap.driver), lap.car]
@@ -93,8 +95,11 @@ func redraw_current_tab() -> void:
 
 
 #region callbacks
-func _on_main_lap_pressed() -> void:
-	main_lap = await load_lap()
+func _on_main_lap_pressed(id: int) -> void:
+	if id == 0:
+		main_lap = await load_lap()
+	elif id == 1:
+		main_lap = null
 	main_lap_label.text = get_lap_info(main_lap)
 	for child in chart_tabs.get_children():
 		if child is ChartPage:
@@ -103,8 +108,11 @@ func _on_main_lap_pressed() -> void:
 	redraw_current_tab()
 
 
-func _on_reference_lap_pressed() -> void:
-	reference_lap = await load_lap()
+func _on_reference_lap_pressed(id: int) -> void:
+	if id == 0:
+		reference_lap = await load_lap()
+	elif id == 1:
+		reference_lap = null
 	reference_lap_label.text = get_lap_info(reference_lap)
 	for child in chart_tabs.get_children():
 		if child is ChartPage:

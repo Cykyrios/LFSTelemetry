@@ -27,6 +27,10 @@ func _init() -> void:
 
 
 func _draw_charts() -> void:
+	clear_charts()
+
+
+func clear_charts() -> void:
 	while scroll_container.get_child_count() > 0:
 		var child := scroll_container.get_children()[-1]
 		scroll_container.remove_child(child)
@@ -34,6 +38,9 @@ func _draw_charts() -> void:
 
 
 func draw_charts() -> void:
+	if not main_lap and not reference_lap:
+		clear_charts()
+		return
 	_draw_charts()
 
 
