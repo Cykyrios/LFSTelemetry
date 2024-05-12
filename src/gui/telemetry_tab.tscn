@@ -19,18 +19,22 @@ unique_name_in_owner = true
 layout_mode = 2
 theme_override_constants/separation = 10
 
-[node name="LoadingHBox" type="HBoxContainer" parent="TelemetryVBox"]
+[node name="LapsHBox" type="HBoxContainer" parent="TelemetryVBox"]
 layout_mode = 2
 alignment = 1
 
-[node name="MainLapButton" type="Button" parent="TelemetryVBox/LoadingHBox"]
+[node name="MainLapVBox" type="VBoxContainer" parent="TelemetryVBox/LapsHBox"]
+layout_mode = 2
+
+[node name="MainLapButton" type="MenuButton" parent="TelemetryVBox/LapsHBox/MainLapVBox"]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 4
 size_flags_vertical = 4
-text = "Load lap data"
+text = "Manage Main Lap"
+flat = false
 
-[node name="MainDriverLabel" type="RichTextLabel" parent="TelemetryVBox/LoadingHBox"]
+[node name="MainLapInfo" type="RichTextLabel" parent="TelemetryVBox/LapsHBox/MainLapVBox"]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(100, 10)
 layout_mode = 2
@@ -42,18 +46,22 @@ fit_content = true
 scroll_active = false
 autowrap_mode = 0
 
-[node name="Control" type="Control" parent="TelemetryVBox/LoadingHBox"]
+[node name="Spacer" type="Control" parent="TelemetryVBox/LapsHBox"]
 custom_minimum_size = Vector2(20, 0)
 layout_mode = 2
 
-[node name="ReferenceLapButton" type="Button" parent="TelemetryVBox/LoadingHBox"]
+[node name="ReferenceLapVBox" type="VBoxContainer" parent="TelemetryVBox/LapsHBox"]
+layout_mode = 2
+
+[node name="ReferenceLapButton" type="MenuButton" parent="TelemetryVBox/LapsHBox/ReferenceLapVBox"]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 4
 size_flags_vertical = 4
-text = "Load reference lap"
+text = "Manage Reference Lap"
+flat = false
 
-[node name="ReferenceDriverLabel" type="RichTextLabel" parent="TelemetryVBox/LoadingHBox"]
+[node name="ReferenceLapInfo" type="RichTextLabel" parent="TelemetryVBox/LapsHBox/ReferenceLapVBox"]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(100, 10)
 layout_mode = 2
@@ -65,7 +73,8 @@ fit_content = true
 scroll_active = false
 autowrap_mode = 0
 
-[node name="ScrollContainer" type="ScrollContainer" parent="TelemetryVBox"]
+[node name="ChartTabs" type="TabContainer" parent="TelemetryVBox"]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_vertical = 3
+tab_alignment = 1
