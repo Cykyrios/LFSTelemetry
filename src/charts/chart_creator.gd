@@ -11,6 +11,55 @@ func _init(main: LapData, ref_lap: LapData) -> void:
 	reference_lap = ref_lap
 
 
+func downsample_data(x_data: Array[float], y_data: Array[float], threshold: int) -> Array[Vector2]:
+	var data_points := x_data.size()
+	var data: Array[Vector2] = []
+	var _discard := data.resize(data_points)
+	for i in data_points:
+		data[i] = Vector2(x_data[i], y_data[i])
+	if threshold < 2 or threshold > data_points:
+		return data
+	if threshold as float / data_points > 0.5:  # Downsampling "not worth it"
+		return data
+	var downsampled: Array[Vector2] = []
+	_discard = downsampled.resize(threshold)
+	downsampled[0] = data[0]
+	var step := (data_points as float - 2) / (threshold - 2)
+	var a := 0
+	var idx := 0
+	for i in threshold - 2:
+		var avg_x := 0.0
+		var avg_y := 0.0
+		var avg_start := floori((i + 1) * step) + 1
+		var avg_end := floori((i + 2) * step) + 1
+		if avg_end > data_points:
+			avg_end = data_points
+		var avg_length := avg_end - avg_start
+		while avg_start < avg_end:
+			avg_x += data[avg_start].x
+			avg_y += data[avg_start].y
+			avg_start += 1
+		avg_x /= avg_length
+		avg_y /= avg_length
+
+		var range_offset := floori(i * step) + 1
+		var range_to := floori((i + 1) * step) + 1
+		var ax := data[a].x
+		var ay := data[a].y
+		var max_area := -1.0
+		while range_offset < range_to:
+			var area := absf((ax - avg_x) * (data[range_offset].y - ay) \
+					- (ax - data[range_offset].x) * (avg_y - ay)) / 2.0
+			if area > max_area:
+				max_area = area
+				idx = range_offset
+			range_offset += 1
+		downsampled[i + 1] = data[idx]
+		a = idx
+	downsampled[-1] = data[-1]
+	return downsampled
+
+
 func get_data(lap: LapData, data_type: String) -> Array[float]:
 	var array: Array[float] = []
 	match data_type:

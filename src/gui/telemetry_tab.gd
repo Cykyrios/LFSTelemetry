@@ -16,6 +16,75 @@ func _ready() -> void:
 	connect_signals()
 	print_laps()
 	add_chart_pages()
+	generate_pth_file()
+
+
+func generate_pth_file() -> void:
+	var points := 46
+	var packet := LFSPacket.new()
+	packet.resize_buffer(16 + 4 * points * 40)
+	packet.add_string_as_utf8(6, "LFSPTH")
+	packet.add_byte(0)
+	packet.add_byte(0)
+	packet.add_int(4 * points)
+	packet.add_int(30)
+	var multiplier := 65536.0
+	var drive_limit := 5.0
+	var road_limit := 7.5
+	for i in 4:
+		var x0 := 0.0
+		var y0 := 0.0
+		var xi := 0.0
+		var yi := 0.0
+		var a0 := 0.0
+		if i == 0:
+			x0 = 0
+			y0 = -2000
+			xi = 0
+			yi = 1000
+			a0 = 45
+		elif i == 1:
+			x0 = 0
+			y0 = -1000
+			xi = 1000
+			yi = 0
+			a0 = -45
+		elif i == 2:
+			x0 = 1000
+			y0 = -1000
+			xi = 0
+			yi = -1000
+			a0 = -135
+		else:
+			x0 = 1000
+			y0 = -2000
+			xi = -1000
+			yi = 0
+			a0 = 135
+		for j in points:
+			var pos := Vector3(
+				x0 + xi * (j as float / points),
+				y0 + yi * (j as float / points),
+				2
+			) * multiplier
+			var angle := a0 - 90 * (j as float / points)
+			angle = wrapf(angle, -180, 180)
+			var direction := Vector3(0, 1, 0).rotated(Vector3(0, 0, 1), deg_to_rad(angle))
+			packet.add_int(int(pos.x))
+			packet.add_int(int(pos.y))
+			packet.add_int(int(pos.z))
+			packet.add_float(direction.x)
+			packet.add_float(direction.y)
+			packet.add_float(direction.z)
+			packet.add_float(-road_limit / cos(deg_to_rad(45 - 90 * (j as float / points))))
+			packet.add_float(road_limit / cos(deg_to_rad(45 - 90 * (j as float / points))))
+			packet.add_float(-drive_limit / cos(deg_to_rad(45 - 90 * (j as float / points))))
+			packet.add_float(drive_limit / cos(deg_to_rad(45 - 90 * (j as float / points))))
+		var file := FileAccess.open("test.pth", FileAccess.WRITE)
+		if FileAccess.get_open_error() != OK:
+			push_error("Could not open file for writing")
+			return
+		file.store_buffer(packet.buffer)
 
 
 func add_chart_pages() -> void:
@@ -29,6 +98,8 @@ func add_chart_pages() -> void:
 	chart_tabs.add_child(chart_page_dampers)
 	var chart_page_track := ChartPageTrack.new()
 	chart_tabs.add_child(chart_page_track)
+	var chart_page_test := ChartPageTest.new()
+	chart_tabs.add_child(chart_page_test)
 
 
 func connect_signals() -> void:

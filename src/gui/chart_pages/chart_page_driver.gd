@@ -41,6 +41,7 @@ func _draw_charts() -> void:
 	chart_speed.chart_area.custom_minimum_size = Vector2(400, 200)
 	chart_speed.x_axis_primary.margin = 0
 	chart_speed.x_axis_primary.draw_labels = false
+	chart_speed.update_minimum_size()
 	if reference_lap:
 		chart_speed.add_data(reference_lap_distance, reference_lap_speed, "Reference")
 		chart_speed.set_chart_data_color(chart_speed.chart_data[-1], Color.GRAY)
@@ -53,6 +54,7 @@ func _draw_charts() -> void:
 	chart_steer.chart_area.custom_minimum_size = Vector2(400, 100)
 	chart_steer.x_axis_primary.margin = 0
 	chart_steer.x_axis_primary.draw_labels = false
+	chart_steer.update_minimum_size()
 	if reference_lap:
 		chart_steer.add_data(reference_lap_distance, reference_lap_steer, "Reference")
 		chart_steer.set_chart_data_color(chart_steer.chart_data[-1], Color.GRAY)
@@ -66,6 +68,7 @@ func _draw_charts() -> void:
 	chart_rpm.chart_area.custom_minimum_size = Vector2(400, 100)
 	chart_rpm.x_axis_primary.margin = 0
 	chart_rpm.x_axis_primary.draw_labels = false
+	chart_rpm.update_minimum_size()
 	if reference_lap:
 		chart_rpm.add_data(reference_lap_distance, reference_lap_rpm, "Reference")
 		chart_rpm.set_chart_data_color(chart_rpm.chart_data[-1], Color.GRAY)
@@ -78,6 +81,7 @@ func _draw_charts() -> void:
 	chart_gear.chart_area.custom_minimum_size = Vector2(400, 100)
 	chart_gear.x_axis_primary.margin = 0
 	chart_gear.x_axis_primary.draw_labels = false
+	chart_gear.update_minimum_size()
 	if reference_lap:
 		chart_gear.add_data(reference_lap_distance, reference_lap_gear, "Reference")
 		chart_gear.set_chart_data_color(chart_gear.chart_data[-1], Color.GRAY)
@@ -90,6 +94,7 @@ func _draw_charts() -> void:
 	chart_throttle_brake.chart_area.custom_minimum_size = Vector2(400, 100)
 	chart_throttle_brake.x_axis_primary.margin = 0
 	chart_throttle_brake.x_axis_primary.draw_labels = false
+	chart_throttle_brake.update_minimum_size()
 	if reference_lap:
 		chart_throttle_brake.add_data(reference_lap_distance, reference_lap_throttle, "Reference")
 		chart_throttle_brake.set_chart_data_color(chart_throttle_brake.chart_data[-1], Color.GRAY)
@@ -113,6 +118,7 @@ func _draw_charts() -> void:
 	vbox.add_child(chart_gees)
 	chart_gees.chart_area.custom_minimum_size = Vector2(400, 100)
 	chart_gees.x_axis_primary.margin = 0
+	chart_gees.update_minimum_size()
 	if reference_lap:
 		chart_gees.add_data(reference_lap_distance, reference_lap_g_lon, "Reference")
 		chart_gees.set_chart_data_color(chart_gees.chart_data[-1], Color.GRAY)
