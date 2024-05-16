@@ -67,6 +67,8 @@ func process_lap_data(lap: LapData, lap_completed := true) -> void:
 			lap_data.car_data[0].indexed_distance = 0
 		var file_name := "%s %s %s %s" % [track, car, lap_data.date,
 				Utils.get_lap_time_string(lap_data.lap_time)]
+		if OS.has_feature("windows"):
+			file_name = file_name.replace(":", "_")
 		var lap_io := LapDataIO.new()
 		lap_io.save_lap_file("user://tlm/%s/%s.tlm" % [session_dir, file_name], lap_data)
 		call_deferred("emit_signal", "lap_data_written")
@@ -135,6 +137,8 @@ func start_recording() -> void:
 	EventBus.telemetry_started.emit()
 	recording = true
 	session_dir = "%s %s %s" % [track, car, Time.get_datetime_string_from_system(true, true)]
+	if OS.has_feature("windows"):
+		session_dir = session_dir.replace(":", "_")
 	var _discard := DirAccess.make_dir_recursive_absolute("user://tlm/%s/" % [session_dir])
 	current_lap = LapData.new()
 
