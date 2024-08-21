@@ -162,7 +162,7 @@ func _on_insim_timeout() -> void:
 func _on_lap_received(packet: InSimLAPPacket) -> void:
 	if not recorder.recording:
 		return
-	if packet.player_id != recorder.player_id:
+	if packet.plid != recorder.player_id:
 		return
 	recorder.save_lap(packet)
 	if recorder.current_lap:
@@ -180,7 +180,7 @@ func _on_outsim_packet_received(packet: OutSimPacket) -> void:
 func _on_pitlane_received(packet: InSimPLAPacket) -> void:
 	if (
 		not recorder.current_lap
-		or packet.player_id != recorder.player_id
+		or packet.plid != recorder.player_id
 	):
 		return
 	if packet.fact == InSim.PitLane.PITLANE_EXIT:
@@ -190,7 +190,7 @@ func _on_pitlane_received(packet: InSimPLAPacket) -> void:
 
 
 func _on_player_connection_received(packet: InSimNPLPacket) -> void:
-	if packet.player_id != recorder.player_id:
+	if packet.plid != recorder.player_id:
 		return
 	recorder.player_name = packet.player_name
 	recorder.car = packet.car_name
@@ -213,7 +213,7 @@ func _on_small_vta_received(packet: InSimSmallPacket) -> void:
 
 
 func _on_split_received(packet: InSimSPXPacket) -> void:
-	if packet.player_id != recorder.player_id:
+	if packet.plid != recorder.player_id:
 		return
 	recorder.save_sector(packet)
 
@@ -224,6 +224,6 @@ func _on_state_received(packet: InSimSTAPacket) -> void:
 	recorder.wind = packet.wind
 	if recorder.recording:
 		return
-	recorder.player_id = packet.view_player_id
+	recorder.player_id = packet.view_plid
 	insim.send_packet(InSimTinyPacket.new(1, InSim.Tiny.TINY_NPL))
 #endregion

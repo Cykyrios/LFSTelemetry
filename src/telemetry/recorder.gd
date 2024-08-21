@@ -93,13 +93,13 @@ func remove_excess_data(lap_data: LapData) -> void:
 
 
 func save_lap(packet: InSimLAPPacket) -> void:
-	if not recording or packet.player_id != player_id:
+	if not recording or packet.plid != player_id:
 		return
 	current_lap.lap_number = packet.laps_done
 	current_lap.lap_time = packet.lap_time / 1000.0
 	current_lap.total_time = packet.elapsed_time / 1000.0
 	var split_packet := InSimSPXPacket.new()
-	split_packet.player_id = packet.player_id
+	split_packet.plid = packet.plid
 	split_packet.split = 0 if current_lap.sectors.is_empty() or current_lap.sectors[-1].sector_number == 0 \
 			else current_lap.sectors[-1].sector_number + 1
 	split_packet.split_time = packet.lap_time
@@ -120,7 +120,7 @@ func save_outsim_packet(packet: OutSimPacket) -> void:
 
 
 func save_sector(packet: InSimSPXPacket) -> void:
-	if not recording or packet.player_id != player_id:
+	if not recording or packet.plid != player_id:
 		return
 	var sector_data := SectorData.new()
 	sector_data.sector_number = packet.split
