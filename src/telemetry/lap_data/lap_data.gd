@@ -48,6 +48,26 @@ func compute_derived_data() -> void:
 		car_data[0].wheel_data[j] = car_data[1].wheel_data[j]
 
 
+func duplicate() -> LapData:
+	var new_lap := LapData.new()
+	new_lap.date = date
+	new_lap.track = track
+	new_lap.weather = weather
+	new_lap.wind = wind
+	new_lap.driver = driver
+	new_lap.car = car
+	new_lap.lap_number = lap_number
+	new_lap.lap_time = lap_time
+	new_lap.total_time = total_time
+	new_lap.sectors = sectors.duplicate(true)
+	new_lap.inlap = inlap
+	new_lap.outlap = outlap
+	new_lap.car_data = car_data.duplicate(true)
+	new_lap.outsim_data = outsim_data.duplicate(true)
+	new_lap.outgauge_data = outgauge_data.duplicate(true)
+	return new_lap
+
+
 func fill_car_data() -> void:
 	# OutGauge is more reliable as OutSim only records in cockpit or custom views
 	var data_point_count := outgauge_data.size()
