@@ -16,6 +16,63 @@ func _ready() -> void:
 	connect_signals()
 	print_laps()
 	add_chart_pages()
+	generate_pth_file()
+
+
+func generate_pth_file() -> void:
+	var straight_positions: Array[float] = [0.04, 0.08, 0.13, 0.19, 0.26, 0.34, 0.45,
+			0.55, 0.66, 0.74, 0.81, 0.87, 0.92, 0.96]
+	var points := straight_positions.size() + 3
+	var packet := LFSPacket.new()
+	packet.resize_buffer(16 + 4 * points * 40)
+	packet.add_string_as_utf8(6, "LFSPTH")
+	packet.add_byte(0)
+	packet.add_byte(0)
+	packet.add_int(4 * points)
+	packet.add_int(8)
+	var multiplier := 65536.0
+	var straight_length := 1000.0
+	var corner_radius := 20.0
+	var drive_limit := 5.0
+	var road_limit := 8.5
+	var pos := Vector3(0, -2000, 2)
+	var dir := Vector3(0, 1, 0)
+	for i in 4:
+		for s in straight_positions:
+			var straight_pos := (pos + dir * straight_length * s)
+			packet.add_int(int(straight_pos.x * multiplier))
+			packet.add_int(int(straight_pos.y * multiplier))
+			packet.add_int(int(straight_pos.z * multiplier))
+			packet.add_float(dir.x)
+			packet.add_float(dir.y)
+			packet.add_float(dir.z)
+			packet.add_float(-road_limit)
+			packet.add_float(road_limit)
+			packet.add_float(-drive_limit)
+			packet.add_float(drive_limit)
+		pos += dir * (straight_length - corner_radius)
+		for j in 4:
+			pos += dir.cross(Vector3(0, 0, 1)) * corner_radius
+			dir = dir.rotated(Vector3(0, 0, 1), -PI / 2 / 4)
+			pos -= dir.cross(Vector3(0, 0, 1)) * corner_radius
+			if j == 3:
+				pos -= dir * corner_radius
+				break
+			packet.add_int(int(pos.x * multiplier))
+			packet.add_int(int(pos.y * multiplier))
+			packet.add_int(int(pos.z * multiplier))
+			packet.add_float(dir.x)
+			packet.add_float(dir.y)
+			packet.add_float(dir.z)
+			packet.add_float(-road_limit)
+			packet.add_float(road_limit)
+			packet.add_float(-drive_limit)
+			packet.add_float(drive_limit)
+	var file := FileAccess.open("test.pth", FileAccess.WRITE)
+	if FileAccess.get_open_error() != OK:
+		push_error("Could not open file for writing")
+		return
+	file.store_buffer(packet.buffer)
 
 
 func add_chart_pages() -> void:
@@ -29,6 +86,8 @@ func add_chart_pages() -> void:
 	chart_tabs.add_child(chart_page_dampers)
 	var chart_page_track := ChartPageTrack.new()
 	chart_tabs.add_child(chart_page_track)
+	var chart_page_test := ChartPageTest.new()
+	chart_tabs.add_child(chart_page_test)
 
 
 func connect_signals() -> void:

@@ -1,3 +1,8 @@
+- replace "load lap" buttons with menu buttons (with entries to load or clear a lap)
+- fix/improve histogram
+- allow zooming and setting arbitrary view limits on charts
+- test pth generation and populating lap data indexed distance
+
 TODO:
 
 * create/update session file after each lap/telemetry end, pointing to each recorded lap of the session (added folders for each session instead)
