@@ -35,7 +35,6 @@ text = "Manage Main Lap"
 flat = false
 item_count = 2
 popup/item_0/text = "Load lap"
-popup/item_0/id = 0
 popup/item_1/text = "Clear lap"
 popup/item_1/id = 1
 
@@ -66,7 +65,6 @@ text = "Manage Reference Lap"
 flat = false
 item_count = 2
 popup/item_0/text = "Load lap"
-popup/item_0/id = 0
 popup/item_1/text = "Clear lap"
 popup/item_1/id = 1
 
