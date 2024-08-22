@@ -110,13 +110,21 @@ func update_sector() -> void:
 	var sector := current_lap.sectors[-1]
 	var sector_number := sector.sector_number
 	var sector_time := sector.sector_time
-	current_sector = wrapi(sector_number + 1, 0, sector_count + 1)
-	deltas[sector_number] = (NO_TIME as float) if not reference_lap else (NO_TIME as float) \
-			if reference_lap.sectors[sector_number - 1].sector_time == NO_TIME \
-			or sector_time == NO_TIME \
-			else (sector_time - reference_lap.sectors[sector_number - 1].sector_time)
 	times[sector_number] = sector_time
+	current_sector = wrapi(sector_number + 1, 0, sector_count + 1)
 	insim_delta.update_lap_data(insim_delta.CURRENT_LAP_COLUMN, times, current_sector)
+	if reference_lap:
+		var reference_sector_idx := -1
+		for idx in reference_lap.sectors.size():
+			if reference_lap.sectors[idx].sector_number == sector_number - 1:
+				reference_sector_idx = idx
+				break
+		deltas[sector_number] = (NO_TIME as float) if not reference_lap else (NO_TIME as float) \
+				if reference_lap.sectors[reference_sector_idx].sector_time == NO_TIME \
+				or sector_time == NO_TIME \
+				else (sector_time - reference_lap.sectors[reference_sector_idx].sector_time)
+	else:
+		deltas[sector_number] = NO_TIME
 
 
 func update_live_delta() -> void:
