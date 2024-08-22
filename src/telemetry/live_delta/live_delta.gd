@@ -26,6 +26,7 @@ var current_lap: LapData = null:
 			insim_delta.sector_count = reference_lap.sectors.size()
 
 var times: Array[float] = []
+var best_times: Array[float] = []
 var deltas: Array[float] = []
 var sector_count := 0
 var current_sector := 0:
@@ -72,7 +73,8 @@ func freeze_delta_updates() -> void:
 	await get_tree().create_timer(freeze_lap_delay).timeout
 	insim_delta.update_lap_data(insim_delta.PREVIOUS_LAP_COLUMN, previous_lap_times)
 	if previous_lap_is_best:
-		insim_delta.update_lap_data(insim_delta.BEST_LAP_COLUMN, previous_lap_times)
+		best_times[0] = previous_lap_times[0]
+		insim_delta.update_lap_data(insim_delta.BEST_LAP_COLUMN, best_times)
 	insim_delta.clear_lap_data(insim_delta.CURRENT_LAP_COLUMN)
 	clear_deltas()
 	freeze_lap_delta = false
@@ -99,10 +101,9 @@ func update_lap() -> void:
 	freeze_delta_updates()
 	current_sector = 1
 	if not reference_lap or current_lap.lap_time < reference_lap.lap_time:
+		best_times[0] = times[0]
 		previous_lap_is_best = true
 		reference_lap = current_lap.duplicate()
-	else:
-		previous_lap_is_best = false
 	times.fill(NO_TIME)
 
 
@@ -113,18 +114,11 @@ func update_sector() -> void:
 	times[sector_number] = sector_time
 	current_sector = wrapi(sector_number + 1, 0, sector_count + 1)
 	insim_delta.update_lap_data(insim_delta.CURRENT_LAP_COLUMN, times, current_sector)
-	if reference_lap:
-		var reference_sector_idx := -1
-		for idx in reference_lap.sectors.size():
-			if reference_lap.sectors[idx].sector_number == sector_number - 1:
-				reference_sector_idx = idx
-				break
-		deltas[sector_number] = (NO_TIME as float) if not reference_lap else (NO_TIME as float) \
-				if reference_lap.sectors[reference_sector_idx].sector_time == NO_TIME \
-				or sector_time == NO_TIME \
-				else (sector_time - reference_lap.sectors[reference_sector_idx].sector_time)
-	else:
-		deltas[sector_number] = NO_TIME
+	deltas[sector_number] = (NO_TIME as float) if best_times[sector_number] == NO_TIME \
+			or sector_time == NO_TIME \
+			else (sector_time - best_times[sector_number])
+	if sector_time < best_times[sector_number]:
+		best_times[sector_number] = sector_time
 
 
 func update_live_delta() -> void:
@@ -186,6 +180,8 @@ func _on_rst_received(packet: InSimRSTPacket) -> void:
 	sector_count = num_sectors
 	var _discard := times.resize(sector_count + 1)
 	times.fill(NO_TIME)
+	_discard = best_times.resize(sector_count + 1)
+	best_times.fill(NO_TIME)
 	_discard = deltas.resize(sector_count + 1)
 	deltas.fill(NO_TIME)
 	insim_delta.sector_count = sector_count
