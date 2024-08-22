@@ -2,6 +2,8 @@ class_name InSimLiveDelta
 extends Node
 
 
+const NO_TIME := 360_000
+
 const FIELDS_PER_ROW := 5
 const BEST_LAP_COLUMN := 1
 const PREVIOUS_LAP_COLUMN := 2
@@ -52,7 +54,7 @@ func clear_buttons() -> void:
 func clear_lap_data(column: int) -> void:
 	var times: Array[float] = []
 	var _discard := times.resize(sector_count + 1)
-	times.fill(360_000)
+	times.fill(NO_TIME)
 	update_lap_data(column, times)
 
 
@@ -132,7 +134,7 @@ func update_button_text(button_id: int, text: String) -> void:
 func update_lap_data(column: int, times: Array[float], current_sector := 0) -> void:
 	for i in times.size():
 		var time := times[i]
-		var time_string := ("^%d---" % [text_color_pending]) if time == 360_000 \
+		var time_string := ("^%d---" % [text_color_pending]) if time == NO_TIME \
 				else "^%d%s" % [text_color_pending if current_sector != 0 \
 				and (i == 0 or i == current_sector) else text_color_standard,
 				GISUtils.get_time_string_from_seconds(time, 2, true)
@@ -144,7 +146,7 @@ func update_delta(deltas: Array[float], current_sector := 0) -> void:
 	for i in deltas.size():
 		var delta := deltas[i]
 		var delta_string := "^%d---" % [text_color_pending]
-		if not is_equal_approx(delta, 360_000):
+		if not is_equal_approx(delta, NO_TIME):
 			var text_color := text_color_standard
 			if i == 0:
 				text_color = text_color_behind if delta > 0 else text_color_ahead

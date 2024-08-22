@@ -2,6 +2,8 @@ class_name LiveDelta
 extends Node
 
 
+const NO_TIME := 360_000
+
 var insim: InSim = null
 var insim_delta: InSimLiveDelta = null
 
@@ -61,7 +63,7 @@ func _ready() -> void:
 func clear_deltas() -> void:
 	deltas.clear()
 	var _discard := deltas.resize(sector_count + 1)
-	deltas.fill(360_000)
+	deltas.fill(NO_TIME)
 
 
 func freeze_delta_updates() -> void:
@@ -92,7 +94,7 @@ func update_lap() -> void:
 	if reference_lap:
 		deltas[0] = current_lap.lap_time - reference_lap.lap_time
 	else:
-		deltas[0] = 360_000
+		deltas[0] = NO_TIME
 	update_displayed_delta()
 	freeze_delta_updates()
 	current_sector = 1
@@ -101,7 +103,7 @@ func update_lap() -> void:
 		reference_lap = current_lap.duplicate()
 	else:
 		previous_lap_is_best = false
-	times.fill(360_000)
+	times.fill(NO_TIME)
 
 
 func update_sector() -> void:
@@ -109,9 +111,9 @@ func update_sector() -> void:
 	var sector_number := sector.sector_number
 	var sector_time := sector.sector_time
 	current_sector = wrapi(sector_number + 1, 0, sector_count + 1)
-	deltas[sector_number] = 360_000.0 if not reference_lap \
-			else 360_000.0 if reference_lap.sectors[sector_number - 1].sector_time == 360_000 \
-			or sector_time == 360_000 \
+	deltas[sector_number] = (NO_TIME as float) if not reference_lap else (NO_TIME as float) \
+			if reference_lap.sectors[sector_number - 1].sector_time == NO_TIME \
+			or sector_time == NO_TIME \
 			else (sector_time - reference_lap.sectors[sector_number - 1].sector_time)
 	times[sector_number] = sector_time
 	insim_delta.update_lap_data(insim_delta.CURRENT_LAP_COLUMN, times, current_sector)
@@ -140,7 +142,7 @@ func update_live_delta() -> void:
 		while outsim_data[0].outsim_pack.current_lap_distance > 1.5 and not outsim_data.is_empty():
 			outsim_data.pop_front()
 		if outsim_data.is_empty():
-			return 360_000
+			return NO_TIME
 		var half_idx := floori(outsim_data.size() / 2.0)
 		var has_indexed_distance := false if is_zero_approx(
 				outsim_data[half_idx].outsim_pack.indexed_distance) else false
@@ -175,5 +177,7 @@ func _on_rst_received(packet: InSimRSTPacket) -> void:
 			num_sectors += 1
 	sector_count = num_sectors
 	var _discard := times.resize(sector_count + 1)
+	times.fill(NO_TIME)
 	_discard = deltas.resize(sector_count + 1)
+	deltas.fill(NO_TIME)
 	insim_delta.sector_count = sector_count
