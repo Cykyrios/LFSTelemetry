@@ -118,17 +118,33 @@ func update_live_delta() -> void:
 	var current_time := current_data[-1].outsim_pack.gis_time \
 			- current_data[0].outsim_pack.gis_time
 	var current_distance := current_data[-1].outsim_pack.current_lap_distance
-	var reference_idx := -1
-	var reference_distance := 0.0
-	var reference_data := reference_lap.outsim_data
-	while (
-		reference_idx < reference_lap.outsim_data.size() - 1
-		and reference_distance < current_distance
-	):
-		reference_idx += 1
-		reference_distance = reference_data[reference_idx].outsim_pack.current_lap_distance
-	var reference_time := reference_data[reference_idx].outsim_pack.gis_time \
-			- reference_data[0].outsim_pack.gis_time
+
+	var get_reference_time := func get_reference_time(lap: LapData, distance: float) -> float:
+		var car_data := lap.car_data
+		var outsim_data := lap.outsim_data
+		var idx := 0
+		if not car_data.is_empty():
+			while idx < car_data.size() - 1 and car_data[idx].lap_distance < distance:
+				idx += 1
+			return car_data[idx].lap_distance - car_data[0].lap_distance
+		while outsim_data[0].outsim_pack.current_lap_distance > 1.5 and not outsim_data.is_empty():
+			outsim_data.pop_front()
+		if outsim_data.is_empty():
+			return 360_000
+		var half_idx := floori(outsim_data.size() / 2.0)
+		var has_indexed_distance := false if is_zero_approx(
+				outsim_data[half_idx].outsim_pack.indexed_distance) else false
+		while (
+			idx < outsim_data.size() - 1
+			and (has_indexed_distance
+					and outsim_data[idx].outsim_pack.indexed_distance < distance
+			or not has_indexed_distance
+					and outsim_data[idx].outsim_pack.current_lap_distance < distance)
+		):
+			idx += 1
+		return outsim_data[idx].outsim_pack.gis_time - outsim_data[0].outsim_pack.gis_time
+
+	var reference_time := get_reference_time.call(reference_lap, current_distance) as float
 	times[0] = current_time
 	times[current_sector] = current_time
 	if current_sector > 1:
