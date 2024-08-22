@@ -130,8 +130,10 @@ func _on_record_button_pressed() -> void:
 		return
 	if recorder.recording:
 		recorder.stop_recording()
+		live_delta.recording = false
 	else:
 		recorder.start_recording()
+		live_delta.recording = true
 
 
 func _on_refresh_target_driver_pressed() -> void:
@@ -184,7 +186,7 @@ func _on_outgauge_packet_received(packet: OutGaugePacket) -> void:
 func _on_outsim_packet_received(packet: OutSimPacket) -> void:
 	recorder.save_outsim_packet(packet)
 
-	if not recorder.current_lap:
+	if not live_delta.recording:
 		return
 	if live_delta.current_lap != recorder.current_lap:
 		live_delta.current_lap = recorder.current_lap
