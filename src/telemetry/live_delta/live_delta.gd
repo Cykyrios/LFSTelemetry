@@ -174,9 +174,15 @@ func _on_display_timer_timeout() -> void:
 
 func _on_rst_received(packet: InSimRSTPacket) -> void:
 	var num_sectors := 1
-	for split in [packet.split1, packet.split2, packet.split3] as Array[int]:
-		if split != 0 and split != 65535:
-			num_sectors += 1
+	var timing := packet.timing & 0xc0
+	if timing == 0x40 and packet.num_nodes != 0:
+		for split in [packet.split1, packet.split2, packet.split3] as Array[int]:
+			if split != 0 and split != 65535:
+				num_sectors += 1
+	elif timing == 0x80:
+		num_sectors += packet.timing & 0x03
+	else:
+		num_sectors = 4  ## maximum allowed by LFS
 	sector_count = num_sectors
 	var _discard := times.resize(sector_count + 1)
 	times.fill(NO_TIME)
