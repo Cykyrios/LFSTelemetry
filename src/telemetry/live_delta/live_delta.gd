@@ -40,10 +40,15 @@ var freeze_lap_delay := 5.0
 
 var display_timer := Timer.new()
 
+var previous_deltas: Array[float] = []
+var delta_derivative := 0.0
+
 
 func _init(insim_instance: InSim) -> void:
 	insim = insim_instance
 	insim_delta = InSimLiveDelta.new(insim_instance)
+	var _discard := previous_deltas.resize(50)
+	previous_deltas.fill(0.0)
 
 
 func _ready() -> void:
@@ -84,7 +89,7 @@ func update_displayed_delta() -> void:
 	if freeze_lap_delta:
 		return
 	insim_delta.update_lap_data(insim_delta.CURRENT_LAP_COLUMN, times, current_sector)
-	insim_delta.update_delta(deltas, current_sector)
+	insim_delta.update_delta(deltas, delta_derivative, current_sector)
 
 
 func update_lap() -> void:
@@ -163,7 +168,14 @@ func update_live_delta() -> void:
 	var reference_time := get_reference_time.call(reference_lap, current_distance) as float
 	if is_zero_approx(reference_time):
 		reference_time = NO_TIME
-	deltas[0] = (NO_TIME as float) if reference_time == NO_TIME else (current_time - reference_time)
+	var current_delta := (NO_TIME as float) if reference_time == NO_TIME \
+			else (current_time - reference_time)
+	var dt := 1.0 if current_data.size() <= 1 \
+			else (current_data[-1].outsim_pack.gis_time - current_data[-2].outsim_pack.gis_time)
+	previous_deltas.pop_front()
+	previous_deltas.push_back(current_delta)
+	delta_derivative = (current_delta - previous_deltas[0]) / dt
+	deltas[0] = current_delta
 
 
 func _on_display_timer_timeout() -> void:

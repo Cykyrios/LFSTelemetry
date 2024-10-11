@@ -116,6 +116,15 @@ func initialize_buttons() -> void:
 				button_text
 			))
 			current_x_pos += current_width
+	insim.send_packet(create_button(
+		(sector_count + 2) * FIELDS_PER_ROW,
+		position_left,
+		position_top - 5,
+		10,
+		5,
+		InSim.ButtonStyle.ISB_DARK,
+		"derivative"
+	))
 
 
 func show_buttons() -> void:
@@ -155,3 +164,15 @@ func update_delta(deltas: Array[float], current_sector := 0) -> void:
 			delta_string = "^%d%s" % [text_color,
 					GISUtils.get_time_string_from_seconds(delta, 2, true, true)]
 		update_button_text((i + 1) * FIELDS_PER_ROW + DELTA_COLUMN, delta_string)
+	var clamped_derivative := roundi(clampf(derivative, -5, 5))
+	var derivative_text := ""
+	var red_arrows := maxi(clamped_derivative, 0)
+	var green_arrows := maxi(-clamped_derivative, 0)
+	var white_dashes := 5 - maxi(green_arrows, red_arrows)
+	if red_arrows > 0:
+		derivative_text = "^1" + "".rpad(red_arrows, "‹")
+	if white_dashes > 0:
+		derivative_text += "^7" + "".rpad(white_dashes, "—")
+	if green_arrows > 0:
+		derivative_text += "^2" + "".rpad(green_arrows, "›")
+	update_button_text((deltas.size() + 1) * FIELDS_PER_ROW, derivative_text)
