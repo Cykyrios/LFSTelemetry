@@ -132,13 +132,8 @@ func update_live_delta() -> void:
 	var current_distance := current_data[-1].outsim_pack.current_lap_distance
 
 	var get_reference_time := func get_reference_time(lap: LapData, distance: float) -> float:
-		var car_data := lap.car_data
 		var outsim_data := lap.outsim_data
 		var idx := 0
-		if not car_data.is_empty():
-			while idx < car_data.size() - 1 and car_data[idx].lap_distance < distance:
-				idx += 1
-			return car_data[idx].lap_distance - car_data[0].lap_distance
 		while outsim_data[0].outsim_pack.current_lap_distance > 1.5 and not outsim_data.is_empty():
 			outsim_data.pop_front()
 		if outsim_data.is_empty():
