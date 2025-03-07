@@ -9,6 +9,8 @@ var outsim := OutSim.new()
 
 var recorder := Recorder.new()
 
+var live_delta: LiveDelta = null
+
 @onready var help_button := %HelpButton as Button
 @onready var help_popup := %HelpPopup as PopupPanel
 @onready var close_help_button := %CloseHelpButton as Button
@@ -33,6 +35,9 @@ func _ready() -> void:
 	add_child(insim)
 	add_child(outgauge)
 	add_child(outsim)
+
+	live_delta = LiveDelta.new(insim)
+	add_child(live_delta)
 
 
 func _exit_tree() -> void:
@@ -166,6 +171,9 @@ func _on_lap_received(packet: InSimLAPPacket) -> void:
 		return
 	recorder.save_lap(packet)
 	if recorder.current_lap:
+		if not live_delta.current_lap:
+			live_delta.current_lap = recorder.current_lap
+		live_delta.update_lap()
 		recorder.end_current_lap()
 
 
@@ -175,6 +183,10 @@ func _on_outgauge_packet_received(packet: OutGaugePacket) -> void:
 
 func _on_outsim_packet_received(packet: OutSimPacket) -> void:
 	recorder.save_outsim_packet(packet)
+
+	if live_delta.current_lap != recorder.current_lap:
+		live_delta.current_lap = recorder.current_lap
+	live_delta.update_live_delta()
 
 
 func _on_pitlane_received(packet: InSimPLAPacket) -> void:
@@ -216,6 +228,9 @@ func _on_split_received(packet: InSimSPXPacket) -> void:
 	if packet.plid != recorder.player_id:
 		return
 	recorder.save_sector(packet)
+	if not live_delta.current_lap:
+		live_delta.current_lap = recorder.current_lap
+	live_delta.update_sector()
 
 
 func _on_state_received(packet: InSimSTAPacket) -> void:
