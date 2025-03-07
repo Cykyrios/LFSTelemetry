@@ -40,7 +40,7 @@ import-assets:
   variables:
     DEPLOY: "release"
   rules:
-    - if: $CI_COMMIT_TAG =~ /\.dev$/
+    - if: $CI_COMMIT_TAG =~ /\.dev\d*$/
       variables:
         DEPLOY: "debug"
   script:
