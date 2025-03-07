@@ -56,6 +56,7 @@ func load_lap() -> LapData:
 	var file_dialog := FileDialog.new()
 	add_child(file_dialog)
 	file_dialog.min_size = Vector2i(600, 400)
+	file_dialog.use_native_dialog = true
 	file_dialog.access = FileDialog.ACCESS_USERDATA
 	file_dialog.file_mode = FileDialog.FILE_MODE_OPEN_FILE
 	file_dialog.current_dir = "user://tlm"
