@@ -3,6 +3,8 @@ extends MarginContainer
 
 var main_lap: LapData = null
 var reference_lap: LapData = null
+var main_lap_path := ""
+var reference_lap_path := ""
 
 @onready var telemetry_vbox := %TelemetryVBox as VBoxContainer
 @onready var main_lap_button := %MainLapButton as MenuButton
@@ -35,6 +37,11 @@ func connect_signals() -> void:
 	var _discard := main_lap_button.get_popup().id_pressed.connect(_on_main_lap_pressed)
 	_discard = reference_lap_button.get_popup().id_pressed.connect(_on_reference_lap_pressed)
 	_discard = chart_tabs.tab_changed.connect(_on_tab_changed)
+
+
+func export_lap_to_csv(path: String, lap: LapData) -> void:
+	var lap_io := LapDataIO.new()
+	lap_io.export_csv(path.trim_suffix(".tlm") + ".csv", lap)
 
 
 func get_lap_info(lap: LapData) -> String:
@@ -98,8 +105,12 @@ func redraw_current_tab() -> void:
 func _on_main_lap_pressed(id: int) -> void:
 	if id == 0:
 		main_lap = await load_lap()
+		main_lap_path = main_lap.file_path
 	elif id == 1:
 		main_lap = null
+	elif id == 2:
+		export_lap_to_csv(main_lap_path, main_lap)
+		return
 	main_lap_label.text = get_lap_info(main_lap)
 	for child in chart_tabs.get_children():
 		if child is ChartPage:
@@ -111,8 +122,12 @@ func _on_main_lap_pressed(id: int) -> void:
 func _on_reference_lap_pressed(id: int) -> void:
 	if id == 0:
 		reference_lap = await load_lap()
+		reference_lap_path = reference_lap.file_path
 	elif id == 1:
 		reference_lap = null
+	elif id == 2:
+		export_lap_to_csv(reference_lap_path, reference_lap)
+		return
 	reference_lap_label.text = get_lap_info(reference_lap)
 	for child in chart_tabs.get_children():
 		if child is ChartPage:

@@ -7,6 +7,7 @@ enum LapFlag {
 	OUTLAP = 2,
 }
 
+var file_path := ""
 var date := ""
 var track := ""
 var weather := 0

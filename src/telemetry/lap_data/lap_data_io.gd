@@ -108,6 +108,7 @@ func load_lap_file(lap_file: String, skip_telemetry := false) -> LapData:
 	lap_data.car_data.clear()
 	_read_car_data(lap_data, file)
 	lap_data.compute_derived_data()
+	lap_data.file_path = lap_file
 	return lap_data
 
 
