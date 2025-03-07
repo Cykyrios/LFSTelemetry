@@ -129,7 +129,10 @@ func update_live_delta() -> void:
 		return
 	var current_time := current_data[-1].outsim_pack.gis_time \
 			- current_data[0].outsim_pack.gis_time
-	var current_distance := current_data[-1].outsim_pack.current_lap_distance
+	var has_indexed_distance := false if is_zero_approx(
+			current_data[-1].outsim_pack.indexed_distance) else true
+	var current_distance := current_data[-1].outsim_pack.indexed_distance if has_indexed_distance \
+			else current_data[-1].outsim_pack.current_lap_distance
 
 	var get_reference_time := func get_reference_time(lap: LapData, distance: float) -> float:
 		var outsim_data := lap.outsim_data
@@ -139,13 +142,13 @@ func update_live_delta() -> void:
 		if outsim_data.is_empty():
 			return NO_TIME
 		var half_idx := floori(outsim_data.size() / 2.0)
-		var has_indexed_distance := false if is_zero_approx(
-				outsim_data[half_idx].outsim_pack.indexed_distance) else false
+		var _has_indexed_distance := false if is_zero_approx(
+				outsim_data[half_idx].outsim_pack.indexed_distance) else true
 		while (
 			idx < outsim_data.size() - 1
-			and (has_indexed_distance
+			and (_has_indexed_distance
 					and outsim_data[idx].outsim_pack.indexed_distance < distance
-			or not has_indexed_distance
+			or not _has_indexed_distance
 					and outsim_data[idx].outsim_pack.current_lap_distance < distance)
 		):
 			idx += 1
