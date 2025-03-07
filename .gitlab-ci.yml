@@ -1,0 +1,92 @@
+image: registry.gitlab.com/cykyrios/godot-builder:4.4-stable
+
+workflow:
+  rules:
+    - if: $CI_COMMIT_TAG
+
+stages:
+  - import
+  - test
+  - export
+  - deploy
+
+variables:
+  EXPORT_NAME: "GIS Telemetry"
+  GIT_SUBMODULE_STRATEGY: recursive
+  GIT_SUBMODULE_FORCE_HTTPS: "true"
+
+import-assets:
+  stage: import
+  script:
+    - godot --headless -v --import
+  artifacts:
+    expire_in: 20 minutes
+    paths:
+      - .godot/
+
+.run-tests:
+  stage: test
+  script:
+  - godot --headless -d \
+    --path "$PWD" \
+    -s addons/gut/gut_cmdln.gd \
+    -gdir res://src/test/unit \
+    -ginclude_subdirs \
+    -glog 2 \
+    -gexit
+
+.export:
+  stage: export
+  variables:
+    DEPLOY: "release"
+  rules:
+    - if: $CI_COMMIT_TAG =~ /\.dev$/
+      variables:
+        DEPLOY: "debug"
+  script:
+    - mkdir -v -p build/$PLATFORM
+    - godot --headless -v --export-$DEPLOY "${TEMPLATE}" build/$PLATFORM/$EXPORT_NAME.$EXTENSION
+  artifacts:
+    name: "${EXPORT_NAME}-${CI_JOB_NAME}"
+    paths:
+      - build/$PLATFORM
+
+export-linux:
+  extends: .export
+  variables:
+    PLATFORM: "linux"
+    TEMPLATE: "Linux"
+    EXTENSION: "x86_64"
+
+export-windows:
+  extends: .export
+  variables:
+    PLATFORM: "windows"
+    TEMPLATE: "Windows Desktop"
+    EXTENSION: "exe"
+
+.deploy:
+  stage: deploy
+  image: alpine:latest
+  variables:
+    PACKAGE_REGISTRY_URL: "${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/generic"
+  script:
+    - apk update && apk add curl zip
+    - cd build/${PLATFORM}
+    - zip -r ${EXPORT_NAME}_v${CI_COMMIT_TAG}_${PLATFORM}.zip *
+    - |
+      curl --location --header "JOB-TOKEN: ${CI_JOB_TOKEN}" \
+      --upload-file ${EXPORT_NAME}_v${CI_COMMIT_TAG}_${PLATFORM}.zip \
+      ${PACKAGE_REGISTRY_URL}/binaries/${CI_COMMIT_TAG}/${EXPORT_NAME}_v${CI_COMMIT_TAG}_${PLATFORM}.zip
+
+deploy-linux:
+  extends: .deploy
+  needs: ["export-linux"]
+  variables:
+    PLATFORM: linux
+
+deploy-windows:
+  extends: .deploy
+  needs: ["export-windows"]
+  variables:
+    PLATFORM: windows
