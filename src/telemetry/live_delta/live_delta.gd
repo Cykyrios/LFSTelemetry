@@ -162,12 +162,14 @@ func update_live_delta() -> void:
 			idx += 1
 		return outsim_data[idx].outsim_pack.gis_time - outsim_data[0].outsim_pack.gis_time
 
-	var reference_time := get_reference_time.call(reference_lap, current_distance) as float
 	times[0] = current_time
 	times[current_sector] = current_time
 	if current_sector > 1:
 			times[current_sector] -= current_lap.sectors[current_sector - 2].split_time
-	deltas[0] = current_time - reference_time
+	var reference_time := get_reference_time.call(reference_lap, current_distance) as float
+	if is_zero_approx(reference_time):
+		reference_time = NO_TIME
+	deltas[0] = (NO_TIME as float) if reference_time == NO_TIME else (current_time - reference_time)
 
 
 func _on_display_timer_timeout() -> void:
