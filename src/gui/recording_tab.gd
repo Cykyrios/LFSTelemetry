@@ -184,6 +184,8 @@ func _on_outgauge_packet_received(packet: OutGaugePacket) -> void:
 func _on_outsim_packet_received(packet: OutSimPacket) -> void:
 	recorder.save_outsim_packet(packet)
 
+	if not recorder.current_lap:
+		return
 	if live_delta.current_lap != recorder.current_lap:
 		live_delta.current_lap = recorder.current_lap
 	live_delta.update_live_delta()
