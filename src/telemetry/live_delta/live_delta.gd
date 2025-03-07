@@ -5,13 +5,18 @@ extends Node
 var insim: InSim = null
 var insim_delta: InSimLiveDelta = null
 
+var recording := false:
+	set(value):
+		if value == true:
+			_on_display_timer_timeout()
+		recording = value
+var previous_lap_is_best := false
+
 var reference_lap: LapData = null:
 	set(lap):
 		if lap and lap != reference_lap:
 			clear_deltas()
 		reference_lap = lap
-		if reference_lap:
-			create_deltas()
 var current_lap: LapData = null:
 	set(lap):
 		current_lap = lap
@@ -55,19 +60,19 @@ func _ready() -> void:
 
 func clear_deltas() -> void:
 	deltas.clear()
-
-
-func create_deltas() -> void:
-	deltas.append(360_000)
-	if reference_lap:
-		for sector in reference_lap.sectors:
-			deltas.append(360_000)
-		insim_delta.sector_count = reference_lap.sectors.size()
+	var _discard := deltas.resize(sector_count + 1)
+	deltas.fill(360_000)
 
 
 func freeze_delta_updates() -> void:
+	var previous_lap_times := times.duplicate()
 	freeze_lap_delta = true
 	await get_tree().create_timer(freeze_lap_delay).timeout
+	insim_delta.update_lap_data(insim_delta.PREVIOUS_LAP_COLUMN, previous_lap_times)
+	if previous_lap_is_best:
+		insim_delta.update_lap_data(insim_delta.BEST_LAP_COLUMN, previous_lap_times)
+	insim_delta.clear_lap_data(insim_delta.CURRENT_LAP_COLUMN)
+	clear_deltas()
 	freeze_lap_delta = false
 
 
@@ -83,14 +88,19 @@ func update_lap() -> void:
 	times[0] = current_lap.lap_time
 	for sector in current_lap.sectors:
 		times[sector.sector_number] = sector.sector_time
-	insim_delta.update_lap_data(insim_delta.PREVIOUS_LAP_COLUMN, times)
+	insim_delta.update_lap_data(insim_delta.CURRENT_LAP_COLUMN, times)
+	if reference_lap:
+		deltas[0] = current_lap.lap_time - reference_lap.lap_time
+	else:
+		deltas[0] = 360_000
 	update_displayed_delta()
-	insim_delta.clear_lap_data(insim_delta.CURRENT_LAP_COLUMN)
 	freeze_delta_updates()
 	current_sector = 1
 	if not reference_lap or current_lap.lap_time < reference_lap.lap_time:
+		previous_lap_is_best = true
 		reference_lap = current_lap.duplicate()
-		insim_delta.update_lap_data(insim_delta.BEST_LAP_COLUMN, times)
+	else:
+		previous_lap_is_best = false
 	times.fill(360_000)
 
 
@@ -100,6 +110,8 @@ func update_sector() -> void:
 	var sector_time := sector.sector_time
 	current_sector = wrapi(sector_number + 1, 0, sector_count + 1)
 	deltas[sector_number] = 360_000.0 if not reference_lap \
+			else 360_000.0 if reference_lap.sectors[sector_number - 1].sector_time == 360_000 \
+			or sector_time == 360_000 \
 			else (sector_time - reference_lap.sectors[sector_number - 1].sector_time)
 	times[sector_number] = sector_time
 	insim_delta.update_lap_data(insim_delta.CURRENT_LAP_COLUMN, times, current_sector)
@@ -113,8 +125,6 @@ func update_live_delta() -> void:
 	var current_data := current_lap.outsim_data
 	if current_data.is_empty():
 		return
-	if deltas.is_empty():
-		create_deltas()
 	var current_time := current_data[-1].outsim_pack.gis_time \
 			- current_data[0].outsim_pack.gis_time
 	var current_distance := current_data[-1].outsim_pack.current_lap_distance
@@ -153,6 +163,8 @@ func update_live_delta() -> void:
 
 
 func _on_display_timer_timeout() -> void:
+	if not recording:
+		return
 	display_timer.start(randf_range(0.08, 0.12))
 
 
